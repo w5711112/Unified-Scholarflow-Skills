@@ -1,0 +1,15 @@
+.env
+.env.*
+*.log
+*.db
+*.sqlite
+*.sqlite3
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.codex-runtime/
+node_modules/
+runtime/
+output/
+*.bak
+*.tmp

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Drone Literature Scout"
+  short_description: "Strict UAV top-venue literature search and corpus review"
+  default_prompt: "Run a strict UAV literature audit or search cycle."

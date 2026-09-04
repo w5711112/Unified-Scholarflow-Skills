@@ -1,0 +1,19 @@
+{
+  "authority": "record_only",
+  "legacy_fixture": "../tests/fixtures/SKILL.before-route-b.md",
+  "legacy_fixture_sha256": "ea253d381ce5db139dae88d1c194dca948fe181d3e9a0a490d8684a50eecb6b1",
+  "compact_fixture_sha256": "fc26e6d9dc3e06e2a5ffda47d9b4114877027053fea21f56e494709e2842f668",
+  "preserved_reference_sha256": {
+    "file-format-spec.md": "8124593fad88c94f84ed941f4f6eb6f9a095df1e55a2067adb6a98ae566ef192",
+    "scoring-rubric.md": "5e32e28a7964112a0186275deca3deb991ba8e94437f682503c9ca5e563839ee",
+    "screening-criteria.md": "436f7f0dd057c69a4f14fab36c2e89173bd42cd3e5f0f5054ded42a9bdb018d3",
+    "venue-white-list.md": "2be65643f8b5759aab72e210e859ca25227f12f1d68ede2f6e3cc3accf1d5f15"
+  },
+  "mappings": [
+    {"legacy_sections": ["插件级轻量故障协作", "通用大规模搜索前置", "Obsidian 语言风格触发规则", "不可协商的合同", "永久格式和语言防回归"], "target": "../SKILL.md"},
+    {"legacy_sections": ["Zotero 与 Obsidian 论文入口合同", "DOI 核验与显示规则", "Zotero—Obsidian 入口对账与双向回链"], "target": "zotero-obsidian-entry-contract.md"},
+    {"legacy_sections": ["插件、研究状态与宿主边界", "Skill 与完整指南镜像维护"], "target": "../SKILL.md"},
+    {"legacy_sections": ["工作模式", "周期流程", "工具边界"], "target": "workflow.md"}
+  ],
+  "unmapped_removed_blocks": []
+}
