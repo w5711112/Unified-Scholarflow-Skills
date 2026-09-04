@@ -1,0 +1,125 @@
+{
+  "schema_version": "1.0",
+  "architecture_version": "route-b-v2",
+  "skill": "renhua",
+  "main_is_authoritative": true,
+  "draft_alignment_mode": "byte-identical-package",
+  "main_legacy_sha256": "30a843373b1006e991282d9c9e3773ab2fd46a5104e2d39960755a4a59c00d85",
+  "draft_legacy_sha256": "9ff6d14c59a9a388561281682fbf074ab542979733ce9a5759d2cf9c714a86a9",
+  "main_compact_fixture_sha256": "6c7c2ba8964ef233db9b054455eb986137f7e4c6f4d6a4f2475f6c1ff9b0fa24",
+  "draft_compact_fixture_sha256": "0fed538159e182ce4eee0de7f268f7f120584a3e527445989e31cebe3c11d1ad",
+  "authority_order": [
+    "current user request",
+    "main SKILL.md",
+    "applicable direct required references",
+    "derived ledgers, plans, summaries, tests, and scores"
+  ],
+  "direct_references": [
+    "references/core-authority-and-scenarios.md",
+    "references/rewrite-rules-r1-r8.md",
+    "references/rewrite-rules-r9-r17.md",
+    "references/execution-and-delivery-contract.md",
+    "references/document-table-format.md"
+  ],
+  "evidence_objects": [
+    "SOURCE_BASELINE",
+    "PROTECTION_LEDGER",
+    "EDIT_LEDGER",
+    "READTHROUGH_RESULT",
+    "DELIVERY_ACCEPTANCE"
+  ],
+  "iron_law_count": 5,
+  "scene_count": 3,
+  "rule_count": 17,
+  "execution_step_count": 3,
+  "delivery_gate_count": 6,
+  "default_output_section_count": 3,
+  "section_ownership": {
+    "entry": [
+      "trigger and exclusions",
+      "authority and architecture lock",
+      "one-level loading",
+      "rule routing index",
+      "evidence spine",
+      "single-pass workflow",
+      "failure semantics",
+      "main-draft synchronization"
+    ],
+    "core-authority-and-scenarios": [
+      "five iron laws",
+      "paper-notes",
+      "grant-proposal",
+      "work-doc",
+      "generated Obsidian/Word language gate",
+      "conflict precedence",
+      "protected content",
+      "false-positive protection"
+    ],
+    "rewrite-rules-r1-r8": ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8"],
+    "rewrite-rules-r9-r17": ["R9", "R10", "R11", "R12", "R13", "R14", "R15", "R16", "R17"],
+    "execution-and-delivery-contract": [
+      "three-step execution",
+      "default output",
+      "only-body override",
+      "six delivery gates",
+      "final decision"
+    ],
+    "document-table-format": [
+      "three-line tables",
+      "cell alignment",
+      "no-space alignment",
+      "explicit zero indentation",
+      "adjacent table separation",
+      "source traceability"
+    ]
+  },
+  "numeric_guards": {
+    "colon_budget_chars": 300,
+    "colon_budget_max": 1,
+    "same_clause_list_min_items": 3,
+    "long_apposition_split_approx_chars": 40,
+    "definition_parallelism_per_paragraph_max": 2,
+    "level_two_density_per_paragraph_min": 2,
+    "similar_sentence_length_tolerance_percent": 20,
+    "isomorphic_label_paragraphs_min": 3,
+    "table_top_bottom_border_pt_approx": 1.5,
+    "table_header_border_pt_approx": 0.75,
+    "main_pass_count": 1,
+    "readthrough_count": 1,
+    "final_reconciliation_count": 1
+  },
+  "preserved_rule_groups": {
+    "R1": "punctuation hard rules",
+    "R2": "reversal rhetoric and symmetric skeletons",
+    "R3": "postposed judgment sentences",
+    "R4": "opening boilerplate",
+    "R5": "closing uplift and future stitching",
+    "R6": "parallelism and symmetry",
+    "R7": "empty modifiers and exaggeration",
+    "R8": "unsourced attribution",
+    "R9": "nominalization restoration",
+    "R10": "subjects and references",
+    "R11": "rhythm",
+    "R12": "jargon and boilerplate density",
+    "R13": "dialogue residue prohibition",
+    "R14": "context leakage prohibition",
+    "R15": "terminology, compound-term expansion, object ownership, and concept consistency",
+    "R16": "logical traceability",
+    "R17": "paragraph structure and semantic reproduction"
+  },
+  "main_only_legacy_content_promoted_to_both_packages": [
+    "Word/WPS three-line-table contract",
+    "OOXML zero-indentation requirements",
+    "adjacent-table separator requirement",
+    "traceable document-format sources"
+  ],
+  "forbidden_architecture_drift": [
+    "adding a sixth evidence object without explicit user approval",
+    "adding a second-level reference",
+    "duplicating a full rule in the entry",
+    "letting the draft overwrite the main skill",
+    "using detector scores or text shortening as acceptance",
+    "letting an Obsidian or Word formatting step bypass the renhua language gate"
+  ],
+  "missing_main_requirements": []
+}

@@ -1,0 +1,6 @@
+interface:
+  display_name: "大规模通用网页调研"
+  short_description: "跨来源大规模网页搜索、动态字段采集、严格核验与调研报告"
+  default_prompt: "Use $searching-at-scale to conduct broad, source-backed web research on this topic."
+policy:
+  allow_implicit_invocation: true

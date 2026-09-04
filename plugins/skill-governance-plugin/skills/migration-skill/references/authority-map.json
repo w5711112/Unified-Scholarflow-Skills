@@ -1,0 +1,14 @@
+{
+  "authority": "record_only",
+  "legacy_fixture": "../tests/fixtures/SKILL.before-route-b.md",
+  "legacy_fixture_sha256": "16fc26fdee305f3ac806e48589d181249a35e527c11d1a63be70ca9b2bf1d481",
+  "compact_fixture_sha256": "232e16cd1c01cc93875e598f5fbce55fa94c929940062c7842916a1da363c1f3",
+  "mappings": [
+    {"legacy_sections": ["插件级轻量故障协作", "镜像维护", "Obsidian 语言风格触发规则"], "target": "../SKILL.md"},
+    {"legacy_sections": ["先给结论", "适用范围"], "target": "../SKILL.md#结论范围与硬边界"},
+    {"legacy_sections": ["迁移对象盘点", "能力矩阵", "标准迁移流程"], "target": "inventory-and-capability-matrix.md"},
+    {"legacy_sections": ["宿主适配原则", "配置与秘密边界"], "target": "host-adapters-and-secrets.md"},
+    {"legacy_sections": ["三层验收", "迁移报告模板", "常见错误", "交付前检查"], "target": "validation-and-reporting.md"}
+  ],
+  "unmapped_removed_blocks": []
+}

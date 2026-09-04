@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "skill": "obsidian-note-style",
+  "legacy_fixture": "../tests/fixtures/SKILL.before-route-b.md",
+  "legacy_fixture_sha256": "8b9b18276b6d46e9861844709c1bf25c2fe87a53152e79e2813cce7c2bc17f17",
+  "compact_fixture_sha256": "eebb7e6cdba1f15d2c8a6656c90d523cc87fb2501c46e825d6911f4d808739d5",
+  "record_only": true,
+  "interface_version": "1.1.0",
+  "migration_state": "modular-v2",
+  "required_preprocess": ["renhua"],
+  "mappings": [
+    {
+      "legacy_sections": ["插件级轻量故障协作", "用户触发规则"],
+      "authoritative_targets": ["../SKILL.md"]
+    },
+    {
+      "legacy_sections": ["核心风格", "专业术语首次出现规则", "标题、段落与列表", "加粗、高亮与颜色", "行内代码、公式、图片与引用", "学术与论文笔记的证据规则", "技术与工具笔记模板", "标签策略"],
+      "authoritative_targets": ["../SKILL.md", "formatting-and-evidence-contract.md", "style-profile.md"]
+    },
+    {
+      "legacy_sections": ["知识归属：不采用一术语一文件", "双向链接：别名 + 精确定位"],
+      "authoritative_targets": ["../SKILL.md", "knowledge-architecture-and-links.md"]
+    },
+    {
+      "legacy_sections": ["公式引导式推导链"],
+      "authoritative_targets": ["../SKILL.md", "formula-explanation-patterns.md"]
+    },
+    {
+      "legacy_sections": ["跨课程概念桥审计"],
+      "authoritative_targets": ["../SKILL.md", "cross-course-concept-bridges.md"]
+    },
+    {
+      "legacy_sections": ["知识点视觉审计与 0–1 张规则", "媒体引用审计与孤儿图片清理", "Windows 无界面写入与视觉复核防回归"],
+      "authoritative_targets": ["../SKILL.md", "visual-media-lifecycle.md"]
+    },
+    {
+      "legacy_sections": ["续写与重整流程", "轻量恢复门槛", "交付前检查", "与研究工具的职责边界", "Skill 与完整指南镜像维护"],
+      "authoritative_targets": ["../SKILL.md", "workflow-and-acceptance.md"]
+    }
+  ],
+  "unmapped_removed_blocks": []
+}

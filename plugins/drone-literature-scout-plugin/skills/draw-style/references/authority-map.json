@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "authority": "record_only",
+  "legacy_fixture": "../tests/fixtures/SKILL.before-route-b.md",
+  "legacy_sha256": "73772e097ae1274e075d8995a5e5d795596cf218305b7f3ecd533cb64d69411f",
+  "compact_fixture_sha256": "a56b609f5c3c03d71e3c39ceb8392f4071013393ead4d272418d9905da69edc6",
+  "rewritten_blocks": [
+    {
+      "legacy_block_sha256": "30a8d5afad0173fbfe6b844544c168f453d570d1b5b84505272c157e359c656d",
+      "target_anchor": "SKILL.md §2 四场景轻量路由",
+      "hardness": "按需加载与一级直接路由保持强制，未改为建议",
+      "conditions": "四类场景、精确复现、空间布局和 RSS 分支条件逐项保留；仅删除同一入口中的第二份重复列表",
+      "numeric_guards": [
+        "六个核心色族",
+        "四条连续数据色阶",
+        "三套命名模板"
+      ],
+      "failure_action": "不匹配当前场景的 reference 不加载；适用 reference 仍须按入口完整读取"
+    }
+  ]
+}

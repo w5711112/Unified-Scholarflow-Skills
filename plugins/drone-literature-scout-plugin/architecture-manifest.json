@@ -1,0 +1,271 @@
+{
+  "schema_version": 2,
+  "architecture_version": "2.1.0",
+  "release_version": "2.1.0",
+  "plugin": "drone-literature-scout-plugin",
+  "policies": {
+    "max_reference_depth": 1,
+    "evidence_reuse": "one-per-distinct-risk-per-gate",
+    "structural_change_requires": [
+      "explicit-user-approval",
+      "architecture-version-bump",
+      "migration-test"
+    ]
+  },
+  "shared_contracts": {
+    "collaboration": "references/skill-collaboration-contract.md",
+    "global_collect_provider": "global.collect-bug-update-accelerate",
+    "global_migration_provider": "global.migration-skill",
+    "global_renhua_provider": "global.renhua"
+  },
+  "provider_edges": [
+    "global.collect-bug-update-accelerate",
+    "global.migration-skill",
+    "global.renhua"
+  ],
+  "test_entrypoints": {
+    "command": "pytest tests -v",
+    "governance": [
+      "tests/test_architecture_governance.py",
+      "tests/test_skill_collaboration.py",
+      "tests/test_canonical_skills.py",
+      "tests/test_migration_skill_contract.py",
+      "tests/test_collect_bug_update_accelerate.py",
+      "tests/test_project_incident_guard.py",
+      "tests/test_global_acceleration_contract.py",
+      "tests/test_obsidian_style_trigger.py"
+    ]
+  },
+  "numeric_guards": {
+    "source": "skills.*.numeric_guards"
+  },
+  "skills": {
+    "draw-style": {
+      "migration_state": "modular-v1",
+      "interface_version": "1.0.0",
+      "entrypoint": "skills/draw-style/SKILL.md",
+      "references": [
+        "skills/draw-style/references/visual-language.md",
+        "skills/draw-style/references/color-font-archive.md",
+        "skills/draw-style/references/layout-patterns.md",
+        "skills/draw-style/references/ppt-figures.md",
+        "skills/draw-style/references/obsidian-knowledge-figures.md",
+        "skills/draw-style/references/paper-method-figures.md",
+        "skills/draw-style/references/data-chart-selector.md",
+        "skills/draw-style/references/paper-data-figures.md",
+        "skills/draw-style/references/rss2026-analysis-protocol.md",
+        "skills/draw-style/references/rss2026-learning-ledger.md"
+      ],
+      "evidence_assets": {
+        "corpus_index": "skills/draw-style/references/rss2026-corpus-index.json",
+        "batch_cards": "skills/draw-style/references/rss2026-batches/batch-*.md"
+      },
+      "calls": {
+        "conditional": ["visualizing-and-writing-modeling-papers"],
+        "handoffs": ["obsidian-note-style"],
+        "failure": ["global.collect-bug-update-accelerate"]
+      },
+      "numeric_guards": {
+        "core_color_families": 6,
+        "continuous_color_scales": 4,
+        "named_templates": 3,
+        "chart_candidates_min": 2,
+        "chart_candidates_max": 4,
+        "ppt_visual_objects_min": 3,
+        "ppt_visual_objects_max": 7,
+        "auxiliary_master_max": 1,
+        "quality_gates": 8,
+        "rss_corpus_size": 103,
+        "rss_batch_size": 5,
+        "rss_accelerated_window": 10
+      }
+    },
+    "drone-literature-scout": {
+      "migration_state": "modular-v1",
+      "interface_version": "1.0.0",
+      "entrypoint": "skills/drone-literature-scout/SKILL.md",
+      "references": [
+        "skills/drone-literature-scout/references/file-format-spec.md",
+        "skills/drone-literature-scout/references/screening-criteria.md",
+        "skills/drone-literature-scout/references/venue-white-list.md",
+        "skills/drone-literature-scout/references/scoring-rubric.md",
+        "skills/drone-literature-scout/references/workflow.md",
+        "skills/drone-literature-scout/references/zotero-obsidian-entry-contract.md"
+      ],
+      "evidence_objects": [
+        "CORPUS_AUDIT",
+        "CANDIDATE_EVIDENCE",
+        "DIRECTION_EVIDENCE",
+        "ZOTERO_RECONCILIATION",
+        "CYCLE_ACCEPTANCE"
+      ],
+      "calls": {
+        "conditional": ["searching-at-scale", "obsidian-note-style", "global.migration-skill"],
+        "failure": ["global.collect-bug-update-accelerate"]
+      },
+      "numeric_guards": {
+        "venue_whitelist_count": 22,
+        "core_search_venue_count": 8,
+        "csv_columns": 15,
+        "direction_pool_min": 0,
+        "direction_pool_max": 15,
+        "score_decimal_places": 2,
+        "search_rotation_minutes": 20,
+        "core_research_files": 3,
+        "scheme_a_weight_sum": 1.0,
+        "single_gpu_memory_gb": 12
+      }
+    },
+    "obsidian-note-style": {
+      "migration_state": "modular-v2",
+      "interface_version": "1.1.0",
+      "entrypoint": "skills/obsidian-note-style/SKILL.md",
+      "references": [
+        "skills/obsidian-note-style/references/style-profile.md",
+        "skills/obsidian-note-style/references/knowledge-architecture-and-links.md",
+        "skills/obsidian-note-style/references/formatting-and-evidence-contract.md",
+        "skills/obsidian-note-style/references/formula-explanation-patterns.md",
+        "skills/obsidian-note-style/references/cross-course-concept-bridges.md",
+        "skills/obsidian-note-style/references/visual-media-lifecycle.md",
+        "skills/obsidian-note-style/references/workflow-and-acceptance.md"
+      ],
+      "evidence_objects": [
+        "NOTE_BASELINE",
+        "KNOWLEDGE_PLACEMENT",
+        "LINK_GRAPH",
+        "VISUAL_DECISION",
+        "NOTE_ACCEPTANCE"
+      ],
+      "calls": {
+        "required_preprocess": ["global.renhua"],
+        "conditional": ["draw-style"],
+        "failure": ["global.collect-bug-update-accelerate"]
+      },
+      "numeric_guards": {
+        "term_first_appearance_questions": 5,
+        "frozen_paper_hubs": 2,
+        "link_issue_categories": 5,
+        "images_per_knowledge_min": 0,
+        "images_per_knowledge_max": 1,
+        "paper_visual_audit_runs": 1,
+        "formula_long_sequence_steps": 12
+      }
+    },
+    "read-paper-analysis-highlight": {
+      "migration_state": "modular-v2",
+      "interface_version": "1.1.0",
+      "entrypoint": "skills/read-paper-analysis-highlight/SKILL.md",
+      "references": [
+        "skills/read-paper-analysis-highlight/references/identity-state-and-capability-contract.md",
+        "skills/read-paper-analysis-highlight/references/full-reading-protocol.md",
+        "skills/read-paper-analysis-highlight/references/pdf-annotation-contract.md",
+        "skills/read-paper-analysis-highlight/references/author-research-contract.md",
+        "skills/read-paper-analysis-highlight/references/obsidian-callout-template.md",
+        "skills/read-paper-analysis-highlight/references/zotero-memory-link-and-ui-contract.md",
+        "skills/read-paper-analysis-highlight/references/runtime-validation-and-cleanup.md"
+      ],
+      "evidence_objects": [
+        "PAPER_BASELINE",
+        "READING_LEDGER",
+        "CLAIM_EVIDENCE_MAP",
+        "AUTHOR_EVIDENCE",
+        "NOTE_PACKAGE",
+        "ANNOTATION_PLAN",
+        "NATIVE_READBACK",
+        "PAPER_ACCEPTANCE"
+      ],
+      "calls": {
+        "required_preprocess": ["global.renhua"],
+        "conditional": ["obsidian-note-style", "draw-style"],
+        "handoffs": ["zotero-local-bridge"],
+        "failure": ["global.collect-bug-update-accelerate"]
+      },
+      "numeric_guards": {
+        "progress_interval_minutes": 20,
+        "new_ledger_schema_version": 4,
+        "author_research_schema_version": 3,
+        "coordinate_round_trip_error_pt_max": 0.01,
+        "homepage_render_dpi_min": 150,
+        "homepage_render_dpi_max": 200,
+        "bridge_url_count": 1,
+        "direct_obsidian_uri_count": 0,
+        "visual_audit_runs_per_paper": 1,
+        "images_per_knowledge_min": 0,
+        "images_per_knowledge_max": 1,
+        "quality_gates": 8,
+        "http_503_retry_max": 1,
+        "ui_retry_max": 1,
+        "module_explanation_fields": 8
+      }
+    },
+    "searching-at-scale": {
+      "migration_state": "modular-v1",
+      "interface_version": "1.0.0",
+      "entrypoint": "skills/searching-at-scale/SKILL.md",
+      "references": [
+        "skills/searching-at-scale/references/source-routing.md",
+        "skills/searching-at-scale/references/domestic-marketplace-edge-contract.md",
+        "skills/searching-at-scale/references/global-scheduler.md",
+        "skills/searching-at-scale/references/adaptive-schema.md",
+        "skills/searching-at-scale/references/verification-contract.md",
+        "skills/searching-at-scale/references/report-contract.md",
+        "skills/searching-at-scale/references/runtime-lifecycle-and-cleanup.md"
+      ],
+      "evidence_objects": [
+        "SEARCH_SCOPE",
+        "BACKEND_CAPABILITIES",
+        "MARKET_RUN",
+        "DISCOVERY_LEDGER",
+        "COVERAGE_STATE",
+        "EVIDENCE_PACKAGE",
+        "REPORT_PACKAGE",
+        "RUN_ACCEPTANCE"
+      ],
+      "calls": {
+        "conditional": ["drone-literature-scout", "obsidian-note-style", "global.migration-skill"],
+        "failure": ["global.collect-bug-update-accelerate"]
+      },
+      "numeric_guards": {
+        "backend_kind_count": 6,
+        "run_type_count": 4,
+        "bulk_state_count": 4,
+        "source_role_count": 5,
+        "jd_query_family_count": 5,
+        "jd_session_action_count": 3,
+        "jd_diagnostic_key_count": 11,
+        "jd_card_field_count": 7,
+        "standard_run_seconds": 600,
+        "marketplace_wall_seconds": 900,
+        "raw_url_target_per_second": 50,
+        "marketplace_candidate_target_per_second": 10,
+        "marketplace_candidate_minimum": 6000,
+        "saturation_rounds": 3,
+        "markdown_artifact_max": 1
+      }
+    },
+    "zotero-obsidian-paper-import": {
+      "migration_state": "modular-v1",
+      "interface_version": "1.0.0",
+      "entrypoint": "skills/zotero-obsidian-paper-import/SKILL.md",
+      "references": [
+        "skills/zotero-obsidian-paper-import/references/identity-and-acquisition-contract.md",
+        "skills/zotero-obsidian-paper-import/references/zotero-write-safety-contract.md",
+        "skills/zotero-obsidian-paper-import/references/state-verification-and-reporting-contract.md"
+      ],
+      "calls": {
+        "conditional": ["obsidian-note-style"],
+        "handoffs": ["read-paper-analysis-highlight", "obsidian-note-style"],
+        "failure": ["global.collect-bug-update-accelerate"]
+      },
+      "numeric_guards": {
+        "batch_start": 12,
+        "batch_end": 102,
+        "batch_count": 91,
+        "excluded_existing_end": 11,
+        "identity_fields_total": 4,
+        "identity_fields_required": 3,
+        "max_items_per_batch": 10
+      }
+    }
+  }
+}

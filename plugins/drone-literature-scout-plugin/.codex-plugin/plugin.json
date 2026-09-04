@@ -1,0 +1,18 @@
+{
+  "name": "drone-literature-scout-plugin",
+  "version": "2.1.0",
+  "description": "Six domain research workflows with stable global governance provider IDs.",
+  "author": {
+    "name": "Local developer"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Drone Literature Scout Plugin",
+    "shortDescription": "Six research skills with scientific drawing",
+    "longDescription": "A single plugin containing six domain skills for general web research, literature auditing, Zotero attachment import, full-text analysis, PDF highlights, Obsidian notes, and scientific drawing. Governance support resolves through stable global provider IDs.",
+    "developerName": "Local developer",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "Audit the UAV corpus first, then run a strict literature search or direction review."
+  }
+}

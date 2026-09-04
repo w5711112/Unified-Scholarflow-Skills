@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "profile_scope": "disposable",
+  "allow_live_profile": false,
+  "allow_production_paper": false,
+  "environment_guards": {
+    "launch_mode": "headless",
+    "loopback_port_owner_count": 1,
+    "disable_word_processor_autoinstall": true,
+    "sort_index_pattern": "^\\d{5}\\|\\d{6}\\|\\d{5}$"
+  },
+  "required_checks": [
+    "preflight_no_write",
+    "create_update_delete",
+    "duplicate_no_op",
+    "response_loss_reconciliation",
+    "rollback_injection",
+    "restart_health",
+    "obsidian_link_behavior"
+  ],
+  "cleanup_requirements": {
+    "temporary_profiles": 0,
+    "temporary_xpi_staging_files": 0,
+    "lock_files": 0,
+    "debug_windows": 0
+  }
+}

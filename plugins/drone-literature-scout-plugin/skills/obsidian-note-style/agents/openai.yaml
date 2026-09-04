@@ -1,0 +1,4 @@
+interface:
+  display_name: "Obsidian Note Style"
+  short_description: "维护中文 Obsidian 知识层级、公式、配图与双链"
+  default_prompt: "Use $obsidian-note-style to organize this Chinese research note with prerequisite knowledge, complete formula explanations, precise WikiLinks, suitable diagrams, and safe media auditing."

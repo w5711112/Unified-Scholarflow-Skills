@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.skill-contract/
+.codex-runtime/
+runtime/
+运行数据/
+.staging/
+.quarantine/
+node_modules/
+%TEMP%/

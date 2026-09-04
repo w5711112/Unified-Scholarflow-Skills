@@ -1,0 +1,27 @@
+{
+  "package_name": "public-skill-name",
+  "redactions": [
+    {
+      "find": "private research phrase",
+      "replace": "<YOUR_TOPIC>"
+    }
+  ],
+  "required_integrations": [
+    {
+      "name": "Browser",
+      "requirement": "supported browser plus the extension required by this workflow"
+    },
+    {
+      "name": "Zotero",
+      "requirement": "Zotero plus the connector or plugin named in the README"
+    },
+    {
+      "name": "Codex",
+      "requirement": "Codex with this Skill installed"
+    },
+    {
+      "name": "Obsidian",
+      "requirement": "Obsidian plus the vault plugins named in the README"
+    }
+  ]
+}

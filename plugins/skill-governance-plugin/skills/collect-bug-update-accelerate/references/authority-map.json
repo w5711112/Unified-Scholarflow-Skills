@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "skill": "collect-bug-update-accelerate",
+  "legacy_fixture": "../tests/fixtures/SKILL.before-route-b.md",
+  "legacy_fixture_sha256": "0874e72072880b21af0444efbfbed462edc6087853c3a1c4b33368bc6fe1afb8",
+  "compact_fixture_sha256": "26bae8c80ad8d52a4aa4bf8a9367d0ec2a92f428b8e51fa32de55b30eb87c090",
+  "record_only": true,
+  "mappings": [
+    {
+      "legacy_sections": ["插件级轻量故障协作", "目标与轻量边界", "防复发与交付门"],
+      "authoritative_targets": ["../SKILL.md"]
+    },
+    {
+      "legacy_sections": ["两级事故事实源"],
+      "authoritative_targets": ["project-scope.json", "project-incident-guard.md"]
+    },
+    {
+      "legacy_sections": ["组件命名一致性", "质量档位守卫", "什么时候才预检", "错误后的最短闭环"],
+      "authoritative_targets": ["incident-schema.md"]
+    },
+    {
+      "legacy_sections": ["后台路线与依赖"],
+      "authoritative_targets": ["known-solution-playbook.md"]
+    },
+    {
+      "legacy_sections": ["临时候选与永久修复", "唯一职责边界"],
+      "authoritative_targets": ["../SKILL.md", "improvement-routing.json"]
+    },
+    {
+      "legacy_sections": ["按需检查与瘦身"],
+      "authoritative_targets": ["provider:global.workspace-hygiene"]
+    },
+    {
+      "legacy_sections": ["Obsidian 语言风格触发", "Skill 与完整指南镜像维护"],
+      "authoritative_targets": ["../SKILL.md"]
+    }
+  ],
+  "unmapped_removed_blocks": []
+}

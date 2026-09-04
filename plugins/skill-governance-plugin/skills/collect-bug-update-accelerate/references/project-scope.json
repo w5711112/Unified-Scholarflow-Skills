@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "approved_project_roots": [
+    "C:/path/to/authorized/project"
+  ],
+  "incident_provider": {
+    "component_id": "global.collect-bug-update-accelerate",
+    "script_name": "incident_registry.py"
+  },
+  "public_registry_path": "C:/path/to/public/incident-registry.json",
+  "local_registry_relative_path": ".codex-runtime/collect-bug-update-accelerate/incident-registry.json",
+  "exclusions": [
+    "ordinary-chatgpt-chats",
+    "projectless-tasks",
+    "other-projects"
+  ]
+}

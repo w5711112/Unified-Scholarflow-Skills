@@ -16,8 +16,7 @@ See [REQUIREMENTS.md](REQUIREMENTS.md).
 
 ## Integration prerequisites
 
-- Codex: Codex with this Skill installed
-- PowerPoint: Microsoft PowerPoint or a compatible PPTX editor for final editing
+No external application integration was declared.
 
 For every required integration, document the exact plugin or extension, permissions, configuration, data flow, and an end-to-end verification step.
 

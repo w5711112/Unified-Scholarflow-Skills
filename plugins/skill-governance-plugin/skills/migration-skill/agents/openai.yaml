@@ -1,0 +1,4 @@
+interface:
+  display_name: "Skill 跨 Agent 迁移"
+  short_description: "将现有 skill 迁移到其他模型或 Agent，并验证能力替代与行为一致性"
+  default_prompt: "盘点指定 skill 的依赖与能力，将其迁移到目标 Agent，给出替代方案并完成文件级、能力级和行为级验收。"

@@ -1,0 +1,156 @@
+{
+  "schema_version": 2,
+  "fallback": {
+    "owner_component": "global.collect-bug-update-accelerate",
+    "allow_auto_apply": true,
+    "recommended_surface": "skill-or-runtime",
+    "external_evidence": false,
+    "promotion_policy": "full"
+  },
+  "routes": [
+    {
+      "component_prefixes": [
+        "incident-registry",
+        "ecosystem-overview",
+        "project-incident-guard",
+        "vault-maintenance"
+      ],
+      "owner_component": "global.collect-bug-update-accelerate",
+      "allow_auto_apply": true,
+      "recommended_surface": "skill-or-runtime",
+      "external_evidence": false,
+      "promotion_policy": "lightweight"
+    },
+    {
+      "component_prefixes": [
+        "apply-patch",
+        "apply_patch",
+        "workspace-patching",
+        "codex-",
+        "windows-",
+        "powershell",
+        "unittest-",
+        "node-",
+        "matplotlib-",
+        "ripgrep-",
+        "dependency-version",
+        "runtime-version",
+        "zotero-install",
+        "zotero-version",
+        "agent-compatibility",
+        "host-compatibility"
+      ],
+      "owner_component": "global.collect-bug-update-accelerate",
+      "allow_auto_apply": true,
+      "recommended_surface": "runtime-or-environment-preflight",
+      "external_evidence": true,
+      "promotion_policy": "lightweight"
+    },
+    {
+      "component_prefixes": [
+        "paper-highlight-semantics"
+      ],
+      "owner_component": "research.read-paper-analysis-highlight",
+      "allow_auto_apply": false,
+      "recommended_surface": "owner-skill",
+      "external_evidence": false,
+      "promotion_policy": "full"
+    },
+    {
+      "component_prefixes": [
+        "pdf-coordinate",
+        "pdf-annotation",
+        "zotero-annotation",
+        "zotero-run-js",
+        "author-research",
+        "paper-fulltext",
+        "read-paper"
+      ],
+      "owner_component": "research.read-paper-analysis-highlight",
+      "allow_auto_apply": true,
+      "recommended_surface": "owner-skill-or-runtime",
+      "external_evidence": true,
+      "promotion_policy": "full"
+    },
+    {
+      "component_prefixes": [
+        "doi",
+        "zotero-attachment",
+        "zotero-import",
+        "obsidian-backlink-bridge",
+        "zotero-obsidian"
+      ],
+      "owner_component": "research.zotero-obsidian-paper-import",
+      "allow_auto_apply": true,
+      "recommended_surface": "owner-skill-or-runtime",
+      "external_evidence": true,
+      "promotion_policy": "full"
+    },
+    {
+      "component_prefixes": [
+        "draw-style",
+        "imagegen",
+        "image2",
+        "scientific-figure",
+        "figure-layout",
+        "visual-semantics",
+        "paper-chart"
+      ],
+      "owner_component": "research.draw-style",
+      "allow_auto_apply": false,
+      "recommended_surface": "owner-skill-or-visual-validator",
+      "external_evidence": true,
+      "promotion_policy": "full"
+    },
+    {
+      "component_prefixes": [
+        "obsidian-vault",
+        "obsidian-callout",
+        "obsidian-wikilink",
+        "obsidian-media",
+        "markdown-style",
+        "vault-link"
+      ],
+      "owner_component": "research.obsidian-note-style",
+      "allow_auto_apply": true,
+      "recommended_surface": "owner-skill-or-validator",
+      "external_evidence": false,
+      "promotion_policy": "full"
+    },
+    {
+      "component_prefixes": [
+        "literature-search",
+        "external-source",
+        "corpus",
+        "source-verification"
+      ],
+      "owner_component": "research.drone-literature-scout",
+      "allow_auto_apply": true,
+      "recommended_surface": "owner-skill-or-runtime",
+      "external_evidence": true,
+      "promotion_policy": "full"
+    },
+    {
+      "component_prefixes": [
+        "migration"
+      ],
+      "owner_component": "global.migration-skill",
+      "allow_auto_apply": true,
+      "recommended_surface": "owner-skill-or-runtime",
+      "external_evidence": true,
+      "promotion_policy": "full"
+    },
+    {
+      "component_prefixes": [
+        "web-search",
+        "web-research",
+        "searching-at-scale"
+      ],
+      "owner_component": "research.searching-at-scale",
+      "allow_auto_apply": false,
+      "recommended_surface": null,
+      "external_evidence": null,
+      "promotion_policy": "full"
+    }
+  ]
+}

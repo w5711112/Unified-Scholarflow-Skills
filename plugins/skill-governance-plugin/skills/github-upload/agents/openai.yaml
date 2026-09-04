@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Skill Publisher"
+  short_description: "Create privacy-clean, documented Skill packages for GitHub"
+  default_prompt: "Prepare the selected local Skill as a lightweight privacy-clean package with reproducible README and dependency guidance; ask before any remote publication."

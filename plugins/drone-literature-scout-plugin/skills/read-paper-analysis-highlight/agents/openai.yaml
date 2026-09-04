@@ -1,0 +1,4 @@
+interface:
+  display_name: "Read Paper, Analyze, Highlight"
+  short_description: "全文精读、作者核验、知识双链与可编辑 Zotero 原生批注"
+  default_prompt: "在 Zotero 论文身份与 PDF 核验完成后，逐页完整阅读正文、公式和图表，调查全部共同一作/一作与通讯作者，构建全库精确双向链接，按（PDF第 N 页）写入折叠 Obsidian 精读，并生成、导入和验证可编辑可删除的 Zotero 原生批注；所有门槛通过后再标为已AI全文读"

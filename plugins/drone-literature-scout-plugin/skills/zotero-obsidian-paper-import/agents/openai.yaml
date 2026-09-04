@@ -1,0 +1,4 @@
+interface:
+  display_name: "Zotero–Obsidian论文导入"
+  short_description: "按论文编号核验 DOI、下载 PDF、导入 Zotero 并回填 Obsidian 双链"
+  default_prompt: "按技能规则处理 Obsidian 核心论文清单，安全地核验 DOI、获取 PDF、写入 Zotero 并验证双链"

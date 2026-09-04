@@ -1,0 +1,18 @@
+{
+  "workspace_root": "C:/path/to/research-workspace",
+  "cycle": {
+    "max_minutes": 120,
+    "max_new_papers": 20,
+    "no_progress_angles": 2,
+    "schedule": "DAILY",
+    "daily_times": ["10:00", "20:00"]
+  },
+  "core_files": [
+    "论文库统一.csv",
+    "论文总结.md",
+    "研究方向分析.md"
+  ],
+  "official_source_required": true,
+  "training_gpu_memory_gb": 12,
+  "deployment_target": "Jetson Orin NX"
+}

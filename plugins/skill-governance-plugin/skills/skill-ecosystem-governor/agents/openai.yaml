@@ -1,0 +1,4 @@
+interface:
+  display_name: "Skill Ecosystem Governor"
+  short_description: "Audit and coordinate a single Skill ecosystem registry"
+  default_prompt: "Resolve the affected Skill components, audit changed nodes and reverse consumers, and propose the smallest reversible lifecycle change."

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "runtimes": {
+    "research-python": {
+      "kind": "python",
+      "lock": "runtime/locks/research-python.lock",
+      "storage": "%LOCALAPPDATA%/SkillRuntime/python/{lock-sha256}"
+    },
+    "searching-node": {
+      "kind": "node",
+      "lock": "skills/searching-at-scale/package-lock.json",
+      "storage": "%LOCALAPPDATA%/SkillRuntime/node/{lock-sha256}"
+    }
+  },
+  "legacy_runtime": {
+    "path": ".codex-runtime/python-packages",
+    "status": "absent-before-task",
+    "cleanup_policy": "do-not-recreate-in-source"
+  }
+}

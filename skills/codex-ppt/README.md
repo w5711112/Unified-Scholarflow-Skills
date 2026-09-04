@@ -16,10 +16,7 @@ See [REQUIREMENTS.md](REQUIREMENTS.md).
 
 ## Integration prerequisites
 
-- Codex: Codex with this Skill installed
-- Python: Python and packages listed in requirements.txt
-- Image generation: A configured image-generation provider described in the documentation
-- PowerPoint: Microsoft PowerPoint or a compatible PPTX viewer/editor
+No external application integration was declared.
 
 For every required integration, document the exact plugin or extension, permissions, configuration, data flow, and an end-to-end verification step.
 

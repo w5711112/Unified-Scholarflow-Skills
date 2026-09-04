@@ -1,0 +1,4 @@
+interface:
+  display_name: "Workspace Hygiene"
+  short_description: "Propose and verify reversible workspace cleanup"
+  default_prompt: "Use $workspace-hygiene to scan this workspace and propose a reversible cleanup."

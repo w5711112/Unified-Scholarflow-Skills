@@ -1,0 +1,63 @@
+{
+  "authority": "record-only",
+  "skill": "read-paper-analysis-highlight",
+  "route": "B",
+  "interface_version": "1.1.0",
+  "migration_state": "modular-v2",
+  "required_preprocess": ["renhua"],
+  "module_explanation_fields": 8,
+  "legacy_sha256": "bfcb85a226d22149f76549d85d315f71be2683a2f7dc351a1efd033fe954eeb3",
+  "legacy_lines": 785,
+  "compact_fixture_sha256": "9de73925bc64beed1061351ab756848b3b716f46254040b21ce81718df0aba21",
+  "direct_references": [
+    "references/identity-state-and-capability-contract.md",
+    "references/full-reading-protocol.md",
+    "references/pdf-annotation-contract.md",
+    "references/author-research-contract.md",
+    "references/obsidian-callout-template.md",
+    "references/zotero-memory-link-and-ui-contract.md",
+    "references/runtime-validation-and-cleanup.md"
+  ],
+  "legacy_section_ownership": {
+    "identity_version_principles_and_status": "references/identity-state-and-capability-contract.md",
+    "full_reading_ledger_formulas_figures_experiments_and_knowledge": "references/full-reading-protocol.md",
+    "evidence_atoms_comments_coordinates_and_native_annotations": "references/pdf-annotation-contract.md",
+    "designated_author_external_evidence": "references/author-research-contract.md",
+    "paper_callout_emphasis_personal_area_and_sheets": "references/obsidian-callout-template.md",
+    "zotero_bridge_memory_sentence_backlink_installation_and_ui": "references/zotero-memory-link-and-ui-contract.md",
+    "windows_dependencies_validation_cleanup_and_delivery": "references/runtime-validation-and-cleanup.md"
+  },
+  "evidence_objects": [
+    "PAPER_BASELINE",
+    "READING_LEDGER",
+    "CLAIM_EVIDENCE_MAP",
+    "AUTHOR_EVIDENCE",
+    "NOTE_PACKAGE",
+    "ANNOTATION_PLAN",
+    "NATIVE_READBACK",
+    "PAPER_ACCEPTANCE"
+  ],
+  "resolved_authority_conflicts": [
+    "author information stays in the current paper Callout, PDF author annotations and internal JSON; no independent author/team note",
+    "the unique block id is a standalone line below the paper heading and before the main Callout",
+    "the visual handoff follows the current owner-controlled eight quality gates"
+  ],
+  "preserved_numeric_guards": {
+    "progress_interval_minutes": 20,
+    "new_ledger_schema_version": 4,
+    "author_research_schema_version": 3,
+    "verified_zotero_version": "9.0.6",
+    "coordinate_round_trip_error_pt_max": 0.01,
+    "homepage_render_dpi_min": 150,
+    "homepage_render_dpi_max": 200,
+    "bridge_url_count": 1,
+    "direct_obsidian_uri_count": 0,
+    "visual_audit_runs_per_paper": 1,
+    "images_per_knowledge_min": 0,
+    "images_per_knowledge_max": 1,
+    "quality_gates": 8,
+    "http_503_retry_max": 1,
+    "ui_retry_max": 1
+  },
+  "missing_legacy_requirements": []
+}

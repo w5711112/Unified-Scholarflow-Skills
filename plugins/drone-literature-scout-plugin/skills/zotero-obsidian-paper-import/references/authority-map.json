@@ -1,0 +1,265 @@
+{
+  "schema_version": 1,
+  "legacy_sha256": "c0049694400d2369ec38658670c3ddb085aede2e92862916fb37f1f344ba4e8d",
+  "compact_fixture_sha256": "1ac1e3cb276199420511980ba712e791660b5dc2f4ff157dad3aaad22ca37713",
+  "strategy": "semantic-deduplication-with-explicit-legacy-block-mapping",
+  "runtime_loaded": false,
+  "rewritten_blocks": [
+    {
+      "legacy_block_sha256": "6393d8657179c36d740ccf797509345ea4b052aaedd56f930cf2249bd32c2fa1",
+      "target_file": "SKILL.md",
+      "target_anchor": "插件级轻量故障协作",
+      "hardness": "conditional preflight; mandatory capture, retry guard, final scan and effect verification",
+      "conditions": "normal, fragile, failed and final-delivery paths",
+      "failure_action": "capture real incidents before rerouting; do not promote without a changed event and nonempty candidate"
+    },
+    {
+      "legacy_block_sha256": "ee726eb53a99661f5fd5e92507a3c14c95bc15b4b0a97f8756046af2bfe2b8da",
+      "target_file": "SKILL.md",
+      "target_anchor": "插件级轻量故障协作",
+      "hardness": "mandatory conditional style call; fact contract remains superior",
+      "conditions": "user requests Obsidian style or semantic equivalent",
+      "failure_action": "call obsidian-note-style before editing or reporting"
+    },
+    {
+      "legacy_block_sha256": "7bff438a7719a3c2450529f9833c8d2ce61770414809055cef89e49002499451",
+      "target_file": "references/zotero-write-safety-contract.md",
+      "target_anchor": "全库唯一性快照",
+      "hardness": "mandatory fresh full-library pagination",
+      "conditions": "batch start, search or rerun, formal-source completion and immediately before saveItems",
+      "failure_action": "stop; cached or filtered results cannot authorize a write"
+    },
+    {
+      "legacy_block_sha256": "dbf33eb4369f3b59d3835efb17162a3bc25ab3a29476805e454659730bbd3e94",
+      "target_file": "references/zotero-write-safety-contract.md",
+      "target_anchor": "全库唯一性快照/三组",
+      "hardness": "mandatory simultaneous DOI, title-identity and Obsidian-number grouping",
+      "conditions": "every target paper in every fresh snapshot",
+      "failure_action": "do not merge using an unspecified similarity score"
+    },
+    {
+      "legacy_block_sha256": "5235eacfd878535c7c88d43b82c8a458ea2671b9f0ff3a937cda3ea93aa30ae6",
+      "target_file": "references/zotero-write-safety-contract.md",
+      "target_anchor": "全库唯一性快照/多父条目阻断",
+      "hardness": "mandatory duplicate blocker and evidence capture",
+      "conditions": "any identity group has two or more parents",
+      "failure_action": "record every key and source; prohibit create, attachment mutation, duplicate_existing and backlink"
+    },
+    {
+      "legacy_block_sha256": "2cb234dd13e999331676e3bd178d81147b242f74716996cf5bcd681ffe9436ef",
+      "target_file": "SKILL.md + references/zotero-write-safety-contract.md",
+      "target_anchor": "不可越过的运行门/写后对账与唯一可证回滚",
+      "hardness": "mandatory zero-create, one-reuse, multi-block and post-write refresh",
+      "conditions": "before and after each parent write",
+      "failure_action": "stop the batch and enter duplicate review when uniqueness fails"
+    },
+    {
+      "legacy_block_sha256": "8d6f7af9df4adb529c604f96cb9d4d7e88d6f0759b188791a151f198227f45de",
+      "target_file": "references/zotero-write-safety-contract.md",
+      "target_anchor": "全库唯一性快照/合并资格",
+      "hardness": "mandatory exact-identity merge threshold and version-conflict blocker",
+      "conditions": "candidate duplicate parents",
+      "failure_action": "mark metadata_conflict or manual_review; prefer formal PDF and re-query attachment key"
+    },
+    {
+      "legacy_block_sha256": "8b01356bf29fd3cbac387249d996f08c786c612b87dda245d17357c8b90ae975",
+      "target_file": "references/zotero-write-safety-contract.md",
+      "target_anchor": "全库唯一性快照",
+      "hardness": "mandatory refresh on every new search and rerun",
+      "conditions": "new-paper or repeat execution",
+      "failure_action": "reject old manifest, cache, search box or single-item assumptions"
+    },
+    {
+      "legacy_block_sha256": "85ed8ebbe8ebcd4eb0a0d7cd88705738a00461abf2250b08d7eab28b7b469871",
+      "target_file": "references/zotero-write-safety-contract.md",
+      "target_anchor": "全库唯一性快照",
+      "hardness": "mandatory formal-source refresh, merge review, formal-version preference and child reconciliation",
+      "conditions": "after Crossref/publisher/proceedings acquisition and before saveItems",
+      "failure_action": "block new writes and backlinks until one verified parent and real PDF child remain"
+    },
+    {
+      "legacy_block_sha256": "3bf6becffe69a3c698398809bb97b6d581450c99d6b754c976a053815d812c73",
+      "target_file": "references/zotero-write-safety-contract.md",
+      "target_anchor": "读取与创建",
+      "hardness": "mandatory local API fact source, DOI-first checking and distinct parent/attachment keys",
+      "conditions": "all Zotero reads and deduplication",
+      "failure_action": "do not merge on title alone or substitute one key type for another"
+    },
+    {
+      "legacy_block_sha256": "fccb280b9c222e5b50c984683216f17498d2ac5e8d8507cbf1bf68d4abd3c30a",
+      "target_file": "references/zotero-write-safety-contract.md",
+      "target_anchor": "读取与创建",
+      "hardness": "mandatory dry-run, unique connector identifiers, batch cap and immediate reconciliation",
+      "conditions": "creating a new parent",
+      "failure_action": "do not write over 10 items per batch or treat collections payload as movement proof"
+    },
+    {
+      "legacy_block_sha256": "870c2c071402ed66644fdf011af8227ad3852e0e0e32d0ce1078c7038b7a2224",
+      "target_file": "references/zotero-write-safety-contract.md",
+      "target_anchor": "Stored PDF",
+      "hardness": "mandatory same-session stored-attachment protocol and API verification",
+      "conditions": "a verified PDF is available",
+      "failure_action": "do not claim linked/workspace files as stored attachments or create a second parent"
+    },
+    {
+      "legacy_block_sha256": "c3ad75207b40cc2b4694c46ea9574ea43b94be75871cccb2e3b057382994edee",
+      "target_file": "references/state-verification-and-reporting-contract.md",
+      "target_anchor": "Obsidian 双链回填",
+      "hardness": "all backlink preconditions are conjunctive",
+      "conditions": "before modifying 01-核心论文精读.md",
+      "failure_action": "leave the note unchanged unless every condition passes"
+    },
+    {
+      "legacy_block_sha256": "9b382ae2e51c6911cea5da0bf3f75e86ad8e9bc6d2c791ea3f93742f63f6b078",
+      "target_file": "references/state-verification-and-reporting-contract.md",
+      "target_anchor": "Obsidian 双链回填",
+      "hardness": "mandatory metadata, formal-version, attachment-key, MIME and URI verification",
+      "conditions": "every backlink",
+      "failure_action": "do not write the backlink when any fact is missing"
+    },
+    {
+      "legacy_block_sha256": "35317474313773a2633755674c5b141e9c54869f72ad3b76f5d9f5e12f2bd32a",
+      "target_file": "references/state-verification-and-reporting-contract.md",
+      "target_anchor": "Obsidian 双链回填",
+      "hardness": "mandatory preservation of formal link and DOI",
+      "conditions": "source-line update",
+      "failure_action": "only add or update the specified Zotero PDF link"
+    },
+    {
+      "legacy_block_sha256": "b46a7361f58a7784533a2ad1342b06707b9e1dcb097e7bd4247785434c6d214a",
+      "target_file": "references/state-verification-and-reporting-contract.md",
+      "target_anchor": "Obsidian 双链回填",
+      "hardness": "mandatory key presence, backup and line-level log",
+      "conditions": "before note mutation",
+      "failure_action": "do not generate a URI without an attachment key"
+    },
+    {
+      "legacy_block_sha256": "63908a1aa1092dbb983addbe4a36d70b38df7335f42925c1482819c0d274aff1",
+      "target_file": "SKILL.md",
+      "target_anchor": "与论文精读样式的职责边界",
+      "hardness": "mandatory responsibility boundary",
+      "conditions": "content styling or detailed reading is requested",
+      "failure_action": "keep this Skill limited to import identity, state, backlink and idempotency"
+    },
+    {
+      "legacy_block_sha256": "132a0909d05530bdae5bb9095d938e1fa16b4a62775e13100771d5af2c9dd123",
+      "target_file": "SKILL.md",
+      "target_anchor": "与论文精读样式的职责边界",
+      "hardness": "mandatory handoff to read-paper-analysis-highlight and obsidian-note-style",
+      "conditions": "full reading, highlighting or Obsidian formatting is requested",
+      "failure_action": "invoke the owning Skill and do not duplicate its formatting contract"
+    },
+    {
+      "legacy_block_sha256": "44c91a5ea0551c709c72eef558154dbbc11c68098e3b3d89edfa52031d36a5e4",
+      "target_file": "references/state-verification-and-reporting-contract.md",
+      "target_anchor": "状态合同",
+      "hardness": "mandatory non-collapsing state model",
+      "conditions": "all item and batch reports",
+      "failure_action": "never summarize incomplete states as success"
+    },
+    {
+      "legacy_block_sha256": "be5a261ea6edc306c6cd267adfd47e9ac9520fba22d22077140720c3d6bdd191",
+      "target_file": "references/state-verification-and-reporting-contract.md",
+      "target_anchor": "状态合同",
+      "hardness": "all ten legacy statuses retained with distinct meanings",
+      "conditions": "classification of every paper",
+      "failure_action": "use the exact applicable state and enforce duplicate_merge_required blocking"
+    },
+    {
+      "legacy_block_sha256": "c9efc12f1744d49c8b4d177d327105e62b075516e065ee48fbd968affa6b2cfc",
+      "target_file": "SKILL.md + references/state-verification-and-reporting-contract.md",
+      "target_anchor": "执行状态机/落盘与批次报告",
+      "hardness": "mandatory per-item ordered workflow",
+      "conditions": "each paper",
+      "failure_action": "do not advance to the next item before verification and state logging"
+    },
+    {
+      "legacy_block_sha256": "19c344d5d4a21461fff2cf9470cf1ed5b7595a182cdc96f5aae93a5b73a3eba1",
+      "target_file": "SKILL.md",
+      "target_anchor": "执行状态机",
+      "hardness": "all ten workflow stages retained with evidence objects replacing duplicate checks",
+      "conditions": "every paper import",
+      "failure_action": "only imported_pdf may reach backlinking; always log state"
+    },
+    {
+      "legacy_block_sha256": "031a25f79da29896f159b6290bdc401ec97f6bf49bc875a660841ea95b2ea2b5",
+      "target_file": "references/state-verification-and-reporting-contract.md",
+      "target_anchor": "落盘与批次报告",
+      "hardness": "mandatory separate counters and honest completion wording",
+      "conditions": "end of every batch",
+      "failure_action": "report incomplete, failed, conflict and review states separately"
+    },
+    {
+      "legacy_block_sha256": "c86966862661b46eeccf5d918c79b03823b3c7319bacd0621d48ad51926fd44d",
+      "target_file": "references/state-verification-and-reporting-contract.md",
+      "target_anchor": "失败防护",
+      "hardness": "all legacy prohibitions retained in five consolidated bullets",
+      "conditions": "identity, file, Zotero, note, secret and merge operations",
+      "failure_action": "stop rather than guess, fabricate, leak, delete user data or force completion"
+    },
+    {
+      "legacy_block_sha256": "31e79294929e46fcbbe7d3eeaf2deeebde3f5a07841a383f0b4b6b498cfcb895",
+      "target_file": "references/state-verification-and-reporting-contract.md",
+      "target_anchor": "必须运行的验证",
+      "hardness": "all five validation classes retained",
+      "conditions": "before delivery",
+      "failure_action": "do not claim completion until unit, dry-run, API, Markdown and mirror checks pass"
+    },
+    {
+      "legacy_block_sha256": "46e926b18ce807b03a3cab400663691cbae7528f1002cd676aaad44c96f9d47a",
+      "target_file": "SKILL.md",
+      "target_anchor": "固定镜像合同",
+      "hardness": "mandatory unique filename, manifest agreement, pre-batch hash gate and canonical-first editing",
+      "conditions": "batch start, rename or Skill edit",
+      "failure_action": "stop all acquisition, Zotero writes and backlinks on mismatch"
+    },
+    {
+      "legacy_block_sha256": "1f4644c729872756c6589da07f2a27d2d92a7e75090f59d4830e5cfc37ccca6b",
+      "target_file": "SKILL.md",
+      "target_anchor": "固定镜像合同",
+      "hardness": "exact unique mirror filename retained",
+      "conditions": "mirror resolution",
+      "failure_action": "reject alternate punctuation, spacing, parentheses or synonyms"
+    },
+    {
+      "legacy_block_sha256": "93bc15ce7e0aaacd8e356c6c1f1c75947e1fb08a02c1cf5f9bccf6924082fa53",
+      "target_file": "SKILL.md + references/zotero-write-safety-contract.md",
+      "target_anchor": "固定镜像合同/写后对账与唯一可证回滚",
+      "hardness": "mandatory sync stop and post-write rollback contract",
+      "conditions": "canonical mismatch or post-saveItems duplicate",
+      "failure_action": "stop; never upload, backlink or guess a rollback target"
+    },
+    {
+      "legacy_block_sha256": "f8582ab9fa082c26945f382f5fb0c223051513691961381b42c3d525942d1550",
+      "target_file": "references/zotero-write-safety-contract.md",
+      "target_anchor": "写后对账与唯一可证回滚",
+      "hardness": "mandatory prewrite snapshot plus fresh postwrite full-library reconciliation",
+      "conditions": "every saveItems record",
+      "failure_action": "do not treat saveItems success as uniqueness proof"
+    },
+    {
+      "legacy_block_sha256": "7cd4a74041fdd0d4a4841f908b067c41d4f732282446ac1bdfe115c2f9a60d29",
+      "target_file": "references/zotero-write-safety-contract.md",
+      "target_anchor": "写后对账与唯一可证回滚",
+      "hardness": "mandatory match-count decisions, uniquely provable rollback and renewed audit on reruns",
+      "conditions": "postwrite match count is one, many or indeterminate",
+      "failure_action": "stop attachment/backlink; delete only the one proven new key; otherwise preserve evidence for review"
+    },
+    {
+      "legacy_block_sha256": "f4e4a62c217cc4050a53fe8013caf6b4d97c82ed867729985dc98b34df885225",
+      "target_file": "references/zotero-write-safety-contract.md + SKILL.md",
+      "target_anchor": "script coupling sentence/固定镜像合同",
+      "hardness": "mandatory synchronized maintenance",
+      "conditions": "classify_post_write_matches, zotero_delete_item, import entry or mirror contract changes",
+      "failure_action": "synchronize canonical and guide, then run the plugin sync check"
+    },
+    {
+      "legacy_block_sha256": "4108f3b4dcaf8ce9910e26dbe5a8f7efc402a572148b110105a9879a037a28b9",
+      "target_file": "SKILL.md",
+      "target_anchor": "固定镜像合同",
+      "hardness": "mandatory byte identity, sync automation, dual-change conflict stop and dependency maintenance",
+      "conditions": "either side or a related Skill boundary changes",
+      "failure_action": "auto-sync one-sided change; stop for manual merge on two-sided change"
+    }
+  ]
+}

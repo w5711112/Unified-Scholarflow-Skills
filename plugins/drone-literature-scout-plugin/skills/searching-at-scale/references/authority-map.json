@@ -1,0 +1,140 @@
+{
+  "schema_version": "1.0",
+  "skill": "searching-at-scale",
+  "route": "B",
+  "legacy_sha256": "946e9f443b2fae318e399074237b0bc9c5b9d549a6781ad272b5b7f4469d018e",
+  "compact_fixture_sha256": "cc6c636529fcfab12237be3bc2e56572496b43866913fed7edb3116e0bdfad5d",
+  "authority_order": [
+    "current user request",
+    "SKILL.md",
+    "direct required references",
+    "deterministic implementation and tests",
+    "derived plans, reports, summaries, and checklists"
+  ],
+  "direct_references": [
+    "references/source-routing.md",
+    "references/domestic-marketplace-edge-contract.md",
+    "references/global-scheduler.md",
+    "references/adaptive-schema.md",
+    "references/verification-contract.md",
+    "references/report-contract.md",
+    "references/runtime-lifecycle-and-cleanup.md"
+  ],
+  "evidence_objects": [
+    "SEARCH_SCOPE",
+    "BACKEND_CAPABILITIES",
+    "MARKET_RUN",
+    "DISCOVERY_LEDGER",
+    "COVERAGE_STATE",
+    "EVIDENCE_PACKAGE",
+    "REPORT_PACKAGE",
+    "RUN_ACCEPTANCE"
+  ],
+  "whitelist_counts": {
+    "backend_kinds": 6,
+    "run_types": 4,
+    "bulk_states": 4,
+    "source_roles": 5,
+    "jd_query_families": 5,
+    "jd_session_actions": 3,
+    "jd_diagnostic_keys": 11,
+    "jd_card_fields": 7
+  },
+  "whitelists": {
+    "backend_kinds": ["search", "sitemap", "open_index", "dataset", "bulk_api", "page"],
+    "run_types": ["quick_direct", "open_web_research", "catalog_enumeration", "bounded_dataset_extract"],
+    "bulk_states": ["bulk_unchecked", "bulk_ready", "bulk_degraded", "bulk_unavailable"],
+    "source_roles": ["brand_official", "vertical_retailer", "marketplace_store", "search_index", "historical_index"],
+    "jd_query_families": ["<topic>", "<topic> 自营", "<topic> 品牌", "<topic> 型号", "<topic> 新品"],
+    "jd_session_actions": ["start", "next", "recover"],
+    "jd_diagnostic_keys": [
+      "document_ready_state",
+      "data_sku_node_count",
+      "candidate_anchor_count",
+      "valid_item_count",
+      "collection_elapsed_ms",
+      "stable_rounds",
+      "observed_page_number",
+      "recovery_stage",
+      "recovery_attempt",
+      "source_path",
+      "pagination_dom"
+    ],
+    "jd_card_fields": ["price", "shop", "commit", "good_rate", "promo", "stock", "image"]
+  },
+  "section_ownership": {
+    "entry": ["triggering", "authority", "evidence spine", "workflow order", "acceptance", "handoffs"],
+    "source-routing": ["source classes", "query families", "bulk gates", "throughput", "concurrency", "saturation"],
+    "domestic-marketplace-edge-contract": ["Edge/JD architecture", "protocol", "projection", "pagination", "pacing", "marketplace acceptance"],
+    "global-scheduler": ["global state", "backend switching", "recovery", "cross-run union", "stop decision"],
+    "adaptive-schema": ["EvidenceAtom", "dynamic fields", "relationships", "time series"],
+    "verification-contract": ["A-E source grades", "freshness", "conflicts", "recommendation confidence"],
+    "report-contract": ["progress", "funnel", "chart", "chat", "optional Markdown", "report validation"],
+    "runtime-lifecycle-and-cleanup": ["state ownership", "artifact whitelist", "cleanup", "workspace diff"]
+  },
+  "numeric_guards": {
+    "run_hard_limit_seconds": 600,
+    "marketplace_wall_limit_seconds": 900,
+    "edge_preflight_seconds": 60,
+    "watchdog_cleanup_seconds": 5,
+    "marketplace_min_unique_candidates": 6000,
+    "marketplace_target_candidates_per_second": 10,
+    "marketplace_zero_growth_window_seconds": 30,
+    "jd_slow_lane_zero_growth_window_seconds": 90,
+    "jd_slow_lane_target_per_second": 1,
+    "jd_slow_lane_min_candidates": 60,
+    "raw_url_target_per_second": 50,
+    "raw_url_min_batches": 2,
+    "raw_url_min_observation_seconds": 5,
+    "raw_url_disclosure_seconds": 15,
+    "saturation_rounds": 3,
+    "product_yield_switch_percent": 5,
+    "jd_page_min": 1,
+    "jd_page_max": 512,
+    "jd_worker_output_kib": 200,
+    "jd_pagination_probe_seconds": 8,
+    "jd_safe_exception_card_count": 30,
+    "jd_slow_start_seconds": 45,
+    "jd_pace_floor_seconds": 30,
+    "jd_max_acceleration_percent": 25,
+    "jd_jitter_percent": 35,
+    "jd_fuse_minutes": 60,
+    "jd_campaign_gap_seconds": 1800,
+    "jd_hard_block_gap_seconds": 3600,
+    "chart_zoom_min": 1,
+    "chart_zoom_max": 4,
+    "chart_title_px": 24,
+    "chart_axis_title_px": 18,
+    "chart_label_px": 16,
+    "chart_line_px": 4,
+    "chart_axis_px": 2.5,
+    "markdown_artifact_max": 1
+  },
+  "conflict_resolutions": [
+    {
+      "topic": "quick_direct versus saturation",
+      "resolution": "quick_direct may answer one stable fact directly but may not claim global market search_saturated; that claim still requires three verified rounds."
+    },
+    {
+      "topic": "bulk_unavailable scope",
+      "resolution": "bulk_unavailable hard-stops the current backend bulk stage; global discovery may continue only after another backend passes fresh preflight, otherwise incomplete_blocked."
+    },
+    {
+      "topic": "JD pagination route",
+      "resolution": "experimental_url remains the promoted default; human_flow is the navigation-context alternative used when platform evidence calls for it."
+    },
+    {
+      "topic": "JD slow-lane rate",
+      "resolution": "one card per second remains the target and disclosure metric, while acceptance uses the full allowed wall window, complete fields, minimum 60 candidates, and truthful observed rate rather than a continuous absolute gate."
+    },
+    {
+      "topic": "ten-minute stop versus final success",
+      "resolution": "ten_minute_limit stops discovery; final success still requires RUN_ACCEPTANCE and, for marketplace runs, acceptance_passed. Bounded runs may report partial or incomplete."
+    },
+    {
+      "topic": "configurable JD window",
+      "resolution": "the four standard run types remain capped at 600 seconds; a longer configurable window is restricted to a separately declared standalone deep experiment and never changes standard-run acceptance."
+    }
+  ],
+  "missing_legacy_requirements": []
+}

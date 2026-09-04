@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex 故障复用与加速"
+  short_description: "复用已验证故障解法并路由永久修复"
+  default_prompt: "Use $collect-bug-update-accelerate for a real technical failure: preserve the 96-character Chinese notice limit, capture before changing route, reuse verified solutions, verify the original effect, and route permanent work to the unique owner. For space, path, version, or runtime-lifecycle incidents, hand off one HYGIENE_REQUEST to workspace-hygiene and do not recurse."

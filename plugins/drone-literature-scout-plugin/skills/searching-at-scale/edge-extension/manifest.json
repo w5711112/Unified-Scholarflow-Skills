@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "Searching at Scale Marketplace Bridge",
+  "version": "2.3.1",
+  "description": "通过日常 Edge 的非激活后台标签投影公开商品候选。",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxH6NXx/GFDkWuYR4VVYFQUm0/RnPYOKDhiYqvdDoiNbCU/Qphh4EIe8MPnAGWnSdfKXCiRhNCw208rnyO0YUj/S7JU6pX+QJ/luil5da3ih4mAhBysUWAJYI8e50FaTnId5DvF+iqNxuJVu/jTJru3LaXdkZpZOo9Gn/ItiorvywPWYxDdAsv3OEmdXjZDOxvgZ0QQj/bAqpfrPbtU6Bn0NyAiRASI/9dVcXFhh19BV06065Pwvpx1hfLM2Pn/uwrc/AhHtrJuyNNy2jTkd0mxK9kspQrQZFg8uR0Ci8Onbn8WAdCQl5tGsLGnU3Wgt8NHtLbsvRrrFtSzu/dAPJCQIDAQAB",
+  "permissions": [
+    "nativeMessaging",
+    "storage",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://search.jd.com/*",
+    "https://s.taobao.com/*",
+    "https://cfe.m.jd.com/privatedomain/risk_handler/*",
+    "https://passport.jd.com/new/login.aspx*"
+  ],
+  "optional_host_permissions": [
+    "https://item.jd.com/*",
+    "https://item.taobao.com/*",
+    "https://detail.tmall.com/*",
+    "https://detail.tmall.hk/*"
+  ],
+  "background": {
+    "service_worker": "service_worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://search.jd.com/*",
+        "https://s.taobao.com/*"
+      ],
+      "js": [
+        "projection.js",
+        "jd_numbered_pagination.js",
+        "jd_page_jump_pagination.js",
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Draw Style"
+  short_description: "Accurate scientific visuals across four use scenarios"
+  default_prompt: "Use $draw-style to design and verify an accurate scientific figure for my target context."
+
+policy:
+  allow_implicit_invocation: true
