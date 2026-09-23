@@ -1,6 +1,6 @@
 # MiMo Desktop 与 Edge 的真实联动
 
-本说明写给使用 **MiMo Desktop**（以及 Codex、Claude Code、Kimi Code 等任意能执行本机命令的 Agent）的使用者。目标不是“看起来兼容”，而是让 Agent 真正加载 Edge、通过扩展与 Native Host 收到页面投影。
+本说明写给使用 **MiMo Desktop**（以及 Codex、Claude Code、Kimi Code 等任意能执行本机命令的 Agent）的使用者。目标是让 Agent 加载 Edge，通过扩展与 Native Host 收到页面投影。
 
 ## 联动链路
 
@@ -21,7 +21,7 @@ scripts/edge_extension_client.mjs / edge_marketplace_query.py
 searching-at-scale 的结构化候选与证据
 ```
 
-`com.codex.searching_at_scale` 是 Native Messaging 协议主机名，不是“仅 Codex 产品可用”的限制。只要注册表指向本包内的宿主清单，MiMo 发起的安装与探测同样生效。
+`com.codex.searching_at_scale` 是 Native Messaging 协议主机名。注册表指向本包内的宿主清单后即可使用。MiMo 发起的安装与探测走同一路径。
 
 ## MiMo 一次接通
 
@@ -77,3 +77,4 @@ python scripts\edge_bridge_ctl.py probe --profile $profile --timeout-ms 15000
 | 与日常 Edge 冲突 | 使用独立 `--profile`，不要共用默认管道 |
 
 验证成功后，在 Agent 会话里应能读到 `probe` 的 `ok: true` 与管道名，这才算“MiMo 能加载 Edge 并联动”。
+
