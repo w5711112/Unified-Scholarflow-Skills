@@ -442,29 +442,6 @@ git clone https://github.com/w5711112/Unified-Scholarflow-Skills.git
 
 ---
 
-## 使用方式：怎样才有好效果
-
-这套 Skill 的定位是**把已经有的研究材料整理好、排版好**，不是从零生成科研结论。
-
-**需要准备的输入**
-
-1. **尽量完整的文字材料**  
-   论文 PDF、讲稿、笔记草稿、提纲、数据说明等。文字越完整、结论依据越清楚，精读汇总与后续排版越稳。
-2. **尽量多的相关图片**  
-   截图、实验图、示意图、照片、图表等。做汇报或笔记配图时，图给得越全，版面与图注才越有内容可排。
-3. **自己的检索主题与路径配置**  
-   关键词、来源范围、Zotero/Obsidian 位置按环境改好。
-
-**会得到什么**
-
-- 检索、导入、精读、笔记之间的**衔接产物**（Zotero 条目与 PDF、PDF 标注、Obsidian 分层笔记与链接）；
-- 需要对外展示时，再交给 PPT Skill（见姊妹仓）做**学术风排版**，生成可编辑 `.pptx`。
-
-**和「一句话出成品」的区别**  
-只丢一句提示词、不给正文和图，排版 Skill 没有材料可排，效果必然空。**先给足文字和图片，再让规则负责组织与排版**，这才是预期用法。
-
----
-
 ## 11. 仓库内容与隐私
 
 含规则、脚本、占位符配置与脱敏示意图。调研关键字已遮盖，论文标题局部打码。自动下载仅针对出版社、会议、机构仓储或作者明确提供的合法入口。见 [SECURITY.md](SECURITY.md)。
@@ -486,4 +463,5 @@ git clone https://github.com/w5711112/Unified-Scholarflow-Skills.git
 Jump path: Obsidian paper link → Zotero PDF location; Zotero jump area → Obsidian note location.
 
 Hosts: Codex, Claude Code, Kimi Code, MiMo Desktop. Edge bridge verified via `edge_bridge_ctl.py`.
+
 
