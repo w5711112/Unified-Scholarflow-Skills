@@ -22,6 +22,9 @@ MEMORY_SENTENCE = (
     "以“策略快飞 + 模型兜底”的双层结构实现高速避障。"
 )
 MEMORY_LINE = f"> - **一眼记住这篇论文**：=={MEMORY_SENTENCE}=="
+AUTHOR_CLAIMED_PROBLEM_SECTION = """> - **作者声称解决了什么当下的问题？**
+>   - 作者指出，当下高速自主飞行仍会在狭窄环境中受到感知延迟和碰撞约束的共同限制；现有方法要么反应慢，要么只给出经验性安全性。本文声称用“策略候选动作 + 可检查安全层”同时保留速度和约束可验证性，但该目标是否实现仍要由后续公式与实验审计（PDF第 1、2 页）。
+"""
 
 
 def source_line(status: str = "待精读") -> str:
@@ -45,7 +48,7 @@ def paper_block(status: str = "待精读") -> str:
 >   > - 它在动作执行前检查约束。
 > - **作者贡献**
 >   - **训练期几何塑形**：把路径进展与安全趋势写入奖励，改变策略形成方式；它是训练设计，不是新的安全定理（PDF第 2、3 页）（公式 1）。
-> - **研究问题审计：Interesting / Solvable / Current level / Impactful？**
+{AUTHOR_CLAIMED_PROBLEM_SECTION}> - **研究问题审计：Interesting / Solvable / Current level / Impactful？**
 >   - **Interesting（问题值得研究吗）**：值得。
 >   - **Solvable（问题可解吗）**：条件可解。
 >   - **Current level（当前研究水平）**：系统前沿。
@@ -139,6 +142,8 @@ This unrelated block contains forbidden p. 9559.
             "author_contributions_valid",
             "author_contribution_emphasis_valid",
             "author_contribution_evidence_valid",
+            "author_claimed_current_problem_valid",
+            "author_claimed_current_problem_order_valid",
             "limitations_valid",
             "unreported_questions_valid",
             "support_links_valid",
@@ -226,6 +231,31 @@ This unrelated block contains forbidden p. 9559.
                 report = self.validate(paper_block().replace(marker, "**缺失栏目**"))
                 self.assertFalse(report["valid"])
                 self.assertIs(report.get(field), False)
+
+    def test_author_claimed_current_problem_section_is_required(self):
+        report = self.validate(
+            paper_block().replace(AUTHOR_CLAIMED_PROBLEM_SECTION, "")
+        )
+        self.assertFalse(report["valid"])
+        self.assertIs(report.get("author_claimed_current_problem_valid"), False)
+        self.assertIn(
+            "missing author-claimed current problem section",
+            report["failures"],
+        )
+
+    def test_author_claimed_current_problem_must_precede_research_audit(self):
+        block = paper_block().replace(AUTHOR_CLAIMED_PROBLEM_SECTION, "")
+        block += AUTHOR_CLAIMED_PROBLEM_SECTION
+        report = self.validate(block)
+        self.assertFalse(report["valid"])
+        self.assertIs(
+            report.get("author_claimed_current_problem_order_valid"),
+            False,
+        )
+        self.assertIn(
+            "author-claimed current problem must precede research audit",
+            report["failures"],
+        )
 
     def test_missing_memory_sentence_is_rejected(self):
         report = self.validate(paper_block().replace(MEMORY_LINE + "\n", ""))
@@ -361,6 +391,7 @@ This unrelated block contains forbidden p. 9559.
             .replace("（PDF第 3 页）（公式 1）", "（公式 1）")
             .replace("（PDF第 4 页）（图 2）", "（图 2）")
             .replace("（PDF第 5 页）（表 II）", "（表 II）")
+            .replace("（PDF第 1、2 页）", "")
         )
         report = self.validate(block)
         self.assertFalse(report["valid"])

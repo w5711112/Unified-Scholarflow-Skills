@@ -1,12 +1,12 @@
 {
   "manifest_version": 2,
   "name": "Zotero Local Bridge",
-  "version": "2.0.0",
+  "version": "2.3.0",
   "description": "Provides a narrow local bridge for Obsidian links and controlled Zotero annotation operations.",
   "homepage_url": "https://www.zotero.org/support/dev/client_coding/plugin_development",
   "applications": {
     "zotero": {
-      "id": "{8c283351-21af-4713-993a-78d8b51020f2}",
+      "id": "obsidian-link-bridge@read-paper-analysis-highlight.local",
       "update_url": "https://obsidian-link.invalid/updates.json",
       "strict_min_version": "9.0",
       "strict_max_version": "9.0.*"

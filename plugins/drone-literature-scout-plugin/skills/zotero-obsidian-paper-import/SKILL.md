@@ -28,9 +28,10 @@ description: Use when a Codex task must import papers listed in an Obsidian Mark
 ## 不可越过的运行门
 
 1. **身份**：DOI、正式页面、PDF 版本或 Zotero key 任一不确定即暂停；不猜 DOI、版本、父 key、附件 key 或 URI
+   - 已发现正式版与现有条目的标题、作者、DOI、venue、年份或版本不一致时进入 `VERSION_CONFLICT`，不得把“已有 PDF”“无需重新下载”或“用户没有再次点名本 Skill”当作跳过理由；完整论文精读已授权本 Skill 完成正式版本接管和元数据读回，但未授权删除旧附件
 2. **唯一性**：在详细合同规定的每个刷新边界分页读取全库，同时审计规范化 DOI、题名身份和 Obsidian 编号；任一组多父条目即 `duplicate_merge_required`
-3. **写入**：零命中才创建，唯一命中才复用；写前必须有 dry-run 与父 key 写前快照，写入后必须再次分页读取
-4. **附件**：仅正式版本、`%PDF-` 魔数、身份匹配且本机 API 反查为 `application/pdf` stored attachment 才成功
+3. **写入**：零命中才创建，唯一命中才复用；写前必须有 dry-run 与父 key 写前快照，写入后必须再次分页读取。本机 API 只作只读事实源，不支持更新或删除；需要这些动作时必须使用已验证 UI/bridge，否则进入人工复核
+4. **附件**：仅正式版本、`%PDF-` 魔数、身份匹配且本机 API 反查为 `application/pdf` stored attachment 才成功。Connector 的 `saveAttachment.parentItemID` 只接受同一 `saveItems` session 的 connector item id，禁止传 Zotero 父 key
 5. **回链**：实际附件 key、父子关系、内容类型和 URI 全部反查后才改 Obsidian；父 key 不得充当附件 key
 6. **权限**：不绕过付费墙、验证码、访问控制、版权或限速；403、429 或登录页立即退避或转获授权流程
 7. **架构**：批处理前核对 canonical 入口、协作合同与插件清单；冲突时停止导入、下载、写入和回链
@@ -42,23 +43,25 @@ description: Use when a Codex task must import papers listed in an Obsidian Mark
 | 证据 ID | 一次生成后可供 |
 | --- | --- |
 | `IDENTITY_EVIDENCE` | DOI 接纳、正式元数据、PDF 版本核验 |
+| `VERSION_RECONCILIATION` | 旧/正式身份映射、父条目元数据更新、正式附件读回、annotation-free backup 与下游证据重建 |
 | `PREWRITE_LIBRARY_SNAPSHOT` | 写入门内的 DOI/题名/编号三组审计、dry-run 与父 key 快照 |
 | `POSTWRITE_RECONCILIATION` | 写后唯一性、children、附件 content type、URI、状态与回链 |
 
-达到新的强制取证边界时必须刷新，不得跨边界复用旧证据。批次开始、每次新论文搜索或重跑、正式来源抓取完成、每次 `saveItems` 紧前、每次写后、合并或回滚后都重新取证；“单证据”只消除同一门内的重复读取与解释。
+刷新以实际变化和写入边界为准：初始盘点供查重与 dry-run 共用；`saveItems` 紧前由唯一写入层在进程锁内刷新并查重，写后只生成一次父条目回执；附件上传后生成一次最终对账供状态与回链共用。搜索开始、来源抓取完成、进入新章节不单独触发全库重读。续跑、外部修改、合并或回滚使旧事实失效时刷新受影响证据；身份、PDF 与来源未变时复用核验结果。
 
 ## 执行状态机
 
 1. 核对 canonical 入口与插件协作合同
 2. 提取编号、来源并验证连续性
 3. 生成 `IDENTITY_EVIDENCE`
-4. 刷新 `PREWRITE_LIBRARY_SNAPSHOT`；零/一/多父条目分别创建、复用或阻断
-5. 生成 dry-run；每批最多 10 条
-6. 创建或复用父条目；合格 PDF 上传为 stored attachment
-7. 生成 `POSTWRITE_RECONCILIATION`；新增重复只按回滚合同处理本次唯一可证明的误建项
-8. 仅用已反查的真实附件 key 回填 `zotero://open-pdf`
-9. 按详细状态合同落盘，未完成不得写成成功
-10. 运行单元测试、API/Markdown/架构审计，按状态分类报告
+4. 若身份冲突，先完成 `VERSION_RECONCILIATION`；未验证前停止后续导入、批注与回链
+5. 刷新 `PREWRITE_LIBRARY_SNAPSHOT`；零/一/多父条目分别创建、复用或阻断
+6. 生成 dry-run；每批最多 10 条
+7. 创建或复用父条目；合格 PDF 上传为 stored attachment。已有父条目缺附件而当前没有受支持 UI/bridge 时，写入 `existing_parent_attachment_requires_supported_ui_or_bridge` 并停止，不以空 session 伪造上传
+8. 生成 `POSTWRITE_RECONCILIATION`；新增重复只按回滚合同处理本次唯一可证明的误建项
+9. 仅用已反查的真实附件 key 回填 `zotero://open-pdf`
+10. 按详细状态合同落盘，未完成不得写成成功
+11. 运行单元测试、API/Markdown/架构审计，按状态分类报告
 
 ## 与论文精读样式的职责边界
 

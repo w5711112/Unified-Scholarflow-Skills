@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "architecture_version": "2.1.0",
-  "release_version": "2.1.0",
+  "release_version": "2.1.0+codex.20260921063133",
   "plugin": "drone-literature-scout-plugin",
   "policies": {
     "max_reference_depth": 1,
@@ -61,9 +61,15 @@
         "batch_cards": "skills/draw-style/references/rss2026-batches/batch-*.md"
       },
       "calls": {
-        "conditional": ["visualizing-and-writing-modeling-papers"],
-        "handoffs": ["obsidian-note-style"],
-        "failure": ["global.collect-bug-update-accelerate"]
+        "conditional": [
+          "visualizing-and-writing-modeling-papers"
+        ],
+        "handoffs": [
+          "obsidian-note-style"
+        ],
+        "failure": [
+          "global.collect-bug-update-accelerate"
+        ]
       },
       "numeric_guards": {
         "core_color_families": 6,
@@ -100,8 +106,14 @@
         "CYCLE_ACCEPTANCE"
       ],
       "calls": {
-        "conditional": ["searching-at-scale", "obsidian-note-style", "global.migration-skill"],
-        "failure": ["global.collect-bug-update-accelerate"]
+        "conditional": [
+          "searching-at-scale",
+          "obsidian-note-style",
+          "global.migration-skill"
+        ],
+        "failure": [
+          "global.collect-bug-update-accelerate"
+        ]
       },
       "numeric_guards": {
         "venue_whitelist_count": 22,
@@ -137,9 +149,15 @@
         "NOTE_ACCEPTANCE"
       ],
       "calls": {
-        "required_preprocess": ["global.renhua"],
-        "conditional": ["draw-style"],
-        "failure": ["global.collect-bug-update-accelerate"]
+        "required_preprocess": [
+          "global.renhua"
+        ],
+        "conditional": [
+          "draw-style"
+        ],
+        "failure": [
+          "global.collect-bug-update-accelerate"
+        ]
       },
       "numeric_guards": {
         "term_first_appearance_questions": 5,
@@ -153,7 +171,7 @@
     },
     "read-paper-analysis-highlight": {
       "migration_state": "modular-v2",
-      "interface_version": "1.1.0",
+      "interface_version": "1.2.0",
       "entrypoint": "skills/read-paper-analysis-highlight/SKILL.md",
       "references": [
         "skills/read-paper-analysis-highlight/references/identity-state-and-capability-contract.md",
@@ -169,16 +187,27 @@
         "READING_LEDGER",
         "CLAIM_EVIDENCE_MAP",
         "AUTHOR_EVIDENCE",
+        "VERSION_RECONCILIATION",
+        "LANGUAGE_GATE",
         "NOTE_PACKAGE",
         "ANNOTATION_PLAN",
         "NATIVE_READBACK",
         "PAPER_ACCEPTANCE"
       ],
       "calls": {
-        "required_preprocess": ["global.renhua"],
-        "conditional": ["obsidian-note-style", "draw-style"],
-        "handoffs": ["zotero-local-bridge"],
-        "failure": ["global.collect-bug-update-accelerate"]
+        "required_preprocess": [
+          "global.renhua"
+        ],
+        "conditional": [
+          "obsidian-note-style",
+          "draw-style"
+        ],
+        "handoffs": [
+          "zotero-local-bridge"
+        ],
+        "failure": [
+          "global.collect-bug-update-accelerate"
+        ]
       },
       "numeric_guards": {
         "progress_interval_minutes": 20,
@@ -195,12 +224,14 @@
         "quality_gates": 8,
         "http_503_retry_max": 1,
         "ui_retry_max": 1,
-        "module_explanation_fields": 8
+        "module_explanation_fields": 8,
+        "language_gate_schema_version": 1,
+        "version_reconciliation_schema_version": 1
       }
     },
     "searching-at-scale": {
       "migration_state": "modular-v1",
-      "interface_version": "1.0.0",
+      "interface_version": "1.1.0",
       "entrypoint": "skills/searching-at-scale/SKILL.md",
       "references": [
         "skills/searching-at-scale/references/source-routing.md",
@@ -222,8 +253,14 @@
         "RUN_ACCEPTANCE"
       ],
       "calls": {
-        "conditional": ["drone-literature-scout", "obsidian-note-style", "global.migration-skill"],
-        "failure": ["global.collect-bug-update-accelerate"]
+        "conditional": [
+          "drone-literature-scout",
+          "obsidian-note-style",
+          "global.migration-skill"
+        ],
+        "failure": [
+          "global.collect-bug-update-accelerate"
+        ]
       },
       "numeric_guards": {
         "backend_kind_count": 6,
@@ -245,17 +282,37 @@
     },
     "zotero-obsidian-paper-import": {
       "migration_state": "modular-v1",
-      "interface_version": "1.0.0",
+      "interface_version": "1.1.0",
+      "behavior_contract": {
+        "identity": "verified-formal-publication-and-actual-pdf-before-create",
+        "deduplication": "doi-normalized-title-obsidian-number-with-locked-final-write-gate",
+        "evidence_reuse": "consume-single-parent-write-receipt-and-final-attachment-reconciliation",
+        "merge": "native-key-preserving-transaction-with-recoverable-old-parent",
+        "links": "reconcile-current-markdown-canvas-state-and-existing-zotero-return-links"
+      },
       "entrypoint": "skills/zotero-obsidian-paper-import/SKILL.md",
       "references": [
         "skills/zotero-obsidian-paper-import/references/identity-and-acquisition-contract.md",
         "skills/zotero-obsidian-paper-import/references/zotero-write-safety-contract.md",
         "skills/zotero-obsidian-paper-import/references/state-verification-and-reporting-contract.md"
       ],
+      "evidence_objects": [
+        "IDENTITY_EVIDENCE",
+        "VERSION_RECONCILIATION",
+        "PREWRITE_LIBRARY_SNAPSHOT",
+        "POSTWRITE_RECONCILIATION"
+      ],
       "calls": {
-        "conditional": ["obsidian-note-style"],
-        "handoffs": ["read-paper-analysis-highlight", "obsidian-note-style"],
-        "failure": ["global.collect-bug-update-accelerate"]
+        "conditional": [
+          "obsidian-note-style"
+        ],
+        "handoffs": [
+          "read-paper-analysis-highlight",
+          "obsidian-note-style"
+        ],
+        "failure": [
+          "global.collect-bug-update-accelerate"
+        ]
       },
       "numeric_guards": {
         "batch_start": 12,
@@ -264,7 +321,8 @@
         "excluded_existing_end": 11,
         "identity_fields_total": 4,
         "identity_fields_required": 3,
-        "max_items_per_batch": 10
+        "max_items_per_batch": 10,
+        "version_reconciliation_schema_version": 1
       }
     }
   }

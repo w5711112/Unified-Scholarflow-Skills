@@ -120,6 +120,20 @@ def _resolve_area_v3(page: fitz.Page, item: dict[str, Any]) -> dict[str, Any]:
 _legacy_area_resolver = _legacy._resolve_area
 _legacy._resolve_area = _resolve_area_v3
 
+
+def _resolve_highlight_v3(page: fitz.Page, item: dict[str, Any]) -> dict[str, Any]:
+    resolved = _legacy_highlight_resolver(page, item)
+    return {
+        **resolved,
+        "coordinate_space": READING_COORDINATE_SPACE,
+        "page_box": _page_box(page),
+        "page_rotation": int(page.rotation),
+    }
+
+
+_legacy_highlight_resolver = _legacy._resolve_highlight
+_legacy._resolve_highlight = _resolve_highlight_v3
+
 annotate_pdf = _legacy.annotate_pdf
 
 

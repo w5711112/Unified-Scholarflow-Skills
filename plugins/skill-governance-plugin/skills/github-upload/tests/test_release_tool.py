@@ -133,7 +133,7 @@ class ReleaseToolTests(unittest.TestCase):
             (source / "SKILL.md").write_text(
                 "---\nname: drone-helper\ndescription: Helps with drone literature.\n---\n"
                 f"# Drone helper\n\nKeep the drone preference. Topic: private-topic.\n"
-                f"vault: {private_path}\nemail: <YOUR_EMAIL>\ntoken={secret}\n",
+                f"vault: {private_path}\nemail: person@private.test\ntoken={secret}\n",
                 encoding="utf-8",
             )
             (source / "scripts" / "collect.py").write_text(
@@ -173,7 +173,7 @@ class ReleaseToolTests(unittest.TestCase):
             self.assertIn("drone preference", skill_text)
             self.assertIn("<YOUR_TOPIC>", skill_text)
             self.assertNotIn("private-user", skill_text)
-            self.assertNotIn("<YOUR_EMAIL>", skill_text)
+            self.assertNotIn("person@private.test", skill_text)
             self.assertNotIn(secret, skill_text)
             self.assertFalse((package / "notes.log").exists())
             self.assertTrue((package / "README.md").is_file())
@@ -229,7 +229,7 @@ class ReleaseToolTests(unittest.TestCase):
                 json.dumps(
                     {
                         "redactions": [
-                            {"find": "private-marker", "replace": "<YOUR_EMAIL>"}
+                            {"find": "private-marker", "replace": "person@private.test"}
                         ]
                     }
                 ),

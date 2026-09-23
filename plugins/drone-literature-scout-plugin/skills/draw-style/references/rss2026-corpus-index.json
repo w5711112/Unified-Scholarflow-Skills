@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "corpus": {
-    "source_root": "C:/path/to/user-supplied-reference-corpus",
+    "source_root": "C:/Users/YOURNAME\\Documents\\PPT-paper-reference-figure\\paper-reference-figure",
     "start_filename": "屏幕截图 2026-08-01 224935.png",
     "image_count": 103,
     "batch_size": 5,

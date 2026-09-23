@@ -18,7 +18,7 @@ from research_metrics import rank_directions
 
 DIRECTIONS = [
     {
-        "name": "资源约束下的不确定性感知安全强化学习轨迹规划",
+        "name": "<YOUR_RESEARCH_PROJECT>",
         "summary": "研究单架无人机在动态障碍、感知误差和控制延迟同时存在时，如何用低维风险/走廊表示与安全过滤器完成轻量化轨迹规划；重点不是重复普通避障，而是给出资源—风险—泛化之间可复现实验边界。",
         "keywords": ["dynamic obstacle", "safe reinforcement learning", "uncertainty", "trajectory planning", "corridor", "risk-aware", "monocular", "LiDAR", "risk-tendency", "VO-Safe", "visual odometry", "semantic scenes"],
         "feasibility": "采用两层同接口环境，并把传感器与地图做成可消融变量：第一层是无渲染的 GPU 向量化高层规划环境，用栅格/走廊/动态风险表示训练 B-spline 或低维策略；第二层把同一策略接入 Isaac Lab 无渲染 PhysX 六自由度四旋翼模型，校验质量、惯量、推力、执行器延迟、风扰和传感器延迟。先建立三条可比较链路：LiDAR + 局部建图 + SFC/安全过滤器，激光测距 + 无地图风险策略，以及相机 + VO/语义场景的定位安全策略。安全保障建议分层：几何碰撞约束或 CBF/备用控制器负责硬约束，风险分布或不确定性估计负责策略趋保守，悬停/返航/急停负责超出观测分布时的失效回退；这些是本项目设计假设，不是现有论文已经共同证明的结论。",
@@ -394,7 +394,7 @@ def generate_analysis(rows: list[dict[str, str]], generated: str) -> str:
                 lines.append(f"| {row.get('title', '')} | {row.get('source', '')} / {row.get('venue_time', '')} | {evidence_level(row)} | {paper_link(row)} |")
         else:
             lines.append("| 当前没有直接证据 | — | 待补充 | 下一轮只从官方来源补充 |")
-        if direction["name"] == "资源约束下的不确定性感知安全强化学习轨迹规划":
+        if direction["name"] == "<YOUR_RESEARCH_PROJECT>":
             lines.extend([
                 "",
                 "#### 关键对照线索与正式基线",

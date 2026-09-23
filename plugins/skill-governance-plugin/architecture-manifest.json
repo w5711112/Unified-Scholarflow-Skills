@@ -1,6 +1,12 @@
 {
   "schema_version": 1,
-  "release_version": "1.1.0+codex.20260904084902",
+  "release_version": "1.1.0+codex.20260921023133",
   "plugin": "skill-governance-plugin",
-  "skills": ["workspace-hygiene", "collect-bug-update-accelerate", "migration-skill", "github-upload", "skill-ecosystem-governor"]
+  "skills": [
+    "workspace-hygiene",
+    "collect-bug-update-accelerate",
+    "migration-skill",
+    "github-upload",
+    "skill-ecosystem-governor"
+  ]
 }

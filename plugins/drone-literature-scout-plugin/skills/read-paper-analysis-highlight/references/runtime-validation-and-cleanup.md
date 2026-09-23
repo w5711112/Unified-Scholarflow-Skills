@@ -40,8 +40,20 @@
 - 中途：已通过且输入未变的门不重复；失败门、输入变化和所有受影响下游必须重跑
 - 不能因历史一直通过就永久跳过
 - **最终全量验证**：交付前忽略中途成功缓存，对全部必需门从新鲜输入完整运行一次
-- 最终包括 Python 内存编译/`python -B`、Skill 本地测试、插件全量测试、manifest/位置/可编辑性、行为点击，以及 `SKILL.md` 与完整指南字节级相等
+- 最终包括 Python 内存编译/`python -B`、Skill 本地测试、插件全量测试、manifest/位置/可编辑性、行为点击，以及完整指南等于当前 `SKILL.md` 与全部 references 的确定性生成结果、各来源哈希一致；正式源文件镜像仍逐文件字节级比较，不能把展开后的完整指南与单个入口文件直接比较
 - 最终失败只修受影响链；修好后再执行一轮新鲜最终全检，不能拿旧缓存完成
+
+### `LANGUAGE_GATE` 运行证据
+
+每篇中文论文笔记在 `NOTE_PACKAGE` 前生成 `language-gate.json`，并用 `scripts/validate_language_gate.py` 验证。回执至少包含：
+
+- `scene: paper-notes`、目标读者、专业语义草稿路径/哈希、renhua 输出路径/哈希、最终笔记路径/哈希、block ID 与 block 哈希
+- `protection_ledger`：数字/单位、公式、引用、主张/边界均保真；个人理解源码前后 SHA-256 相同且与最终 block 一致
+- `term_decision_ledger`：术语、最终形式、保留/翻译理由、首次位置、含义保真和本文语境解释已存在。英文保留不得省略作用解释
+- `readthrough_result`：完整 AI block 已通读、段落衔接已检查、信息密度过高时已扩写；不得只检查新增句
+- `delivery_acceptance`：事实保真、表达清楚、术语一致、无硬翻译、无 AI 编制痕迹、叙事连续、个人内容未改
+
+`validate_completion.py` 的完成态 CLI 必须同时传入 `--language-gate` 与 `--version-reconciliation`，由脚本读取并验证真实回执；`verification.json` 内自行写入的 `valid: true` 不能替代这两个参数。
 
 ## 清理白名单
 
@@ -57,19 +69,19 @@
 
 ## 交付门
 
-交付时复用本轮 8 个证据对象，但最终验证器从新鲜输入运行。至少确认：
+交付时复用本轮 10 个证据对象，但最终验证器从新鲜输入运行。至少确认：
 
 1. 每页正文、公式、图、表、图注已读且 `unresolved` 为空
 2. 高亮均为独立信息证据原子；方法、baseline、参考角色、量化值和 support link 语义完整
 3. 评论首行结论、后续分析；`quote`、`actual_text`、`quads`、页码一致
 4. area 的 `rect`/`zotero_rect` 往返和视觉对象一致
 5. 作者完整、可达、带日期、使用“外部信息：”，三处一致且无独立作者笔记
-6. 唯一 Callout、独占行 block ID、个人理解逐字保留；PDF 页码定位和多页压缩正确
+6. 唯一 Callout、独占行 block ID、个人理解逐字保留；“作者声称解决了什么当下的问题”位于研究问题审计之前；PDF 页码定位和多页压缩正确
 7. 每个公式逐符号、计算逻辑、系统位置、设计原因、条件与边界完整
 8. 记忆句在笔记/PDF逐字相同，回答原理—结构—效果且不遮挡
 9. 回链只有 `bridge_url_count = 1`、`direct_obsidian_uri_count = 0`，真实点击到当前论文 block
-10. 论文报告、可以推断、尚不能证明、作者局限、未报告疑点和实验对象—条件—样本—结果—边界分开
-11. 控制、感知和机器人论文的主链模块逐项通过八项解释合同；初学者能沿数据流复述输入来自哪里、怎样处理、输出属于谁并交给谁；中文正文已按 `专业语义草稿 → renhua → obsidian-note-style` 处理
-12. backup、overwrite、SHA-256、annotation manifest 通过；Zotero 原生、可编辑、可删除、无锁、位置准确
+10. 论文报告、可以推断、尚不能证明、作者局限、未报告疑点和实验对象—条件—样本—结果—边界分开；同一主张对账同时核对 reasoning_path 的前置证据、critical_assumption 的核心依赖及 strongest_counterexample 的可区分性、适用范围与未执行状态，不新增平行验证链
+11. 控制、感知和机器人论文的主链模块逐项通过八项解释合同；初学者能沿数据流复述输入来自哪里、怎样处理、输出属于谁并交给谁；完整中文 AI block 已按 `专业语义草稿 → renhua → obsidian-note-style` 处理并通过 `LANGUAGE_GATE`
+12. `workflow_scope: full` 且 `VERSION_RECONCILIATION` 为无冲突核验或已完成正式版接管；backup、overwrite、SHA-256、annotation manifest 通过；Zotero 原生、可编辑、可删除、无锁、位置准确
 13. 正文和知识链接完成后**每篇论文只触发一次** `obsidian-note-style`；全 Vault 视觉审计、每知识点 0/1 决策、`draw-style` **八项硬质量门槛**与媒体审计通过
 14. 中间文件零残留，镜像字节一致，最终状态才为 `已AI全文读`

@@ -23,6 +23,8 @@ from paper_import import (
     zotero_connector_upload_attachment,
     zotero_delete_item,
     classify_post_write_matches,
+    existing_identity_conflict,
+    verified_existing_attachment,
 )
 
 
@@ -81,11 +83,11 @@ def enrich_records(records: list[dict], sleep_seconds: float = 0.7) -> list[dict
 
 def pdf_candidates(paper: dict) -> list[str]:
     urls: list[str] = []
-    source = paper.get("source_url") or ""
+    if paper.get('formal_pdf_url'):
+        urls.append(paper['formal_pdf_url'])
+    source = paper.get('formal_source_url') or paper.get("source_url") or ""
     if source.lower().endswith(".pdf") or "/pdf" in source.lower():
         urls.append(source)
-    if "arxiv.org/abs/" in source:
-        urls.append(source.replace("/abs/", "/pdf/"))
     if "proceedings.mlr.press" in source and source.endswith(".html"):
         urls.append(source[:-5] + ".pdf")
     if "roboticsproceedings.org" in source and source.endswith(".html"):
@@ -100,7 +102,10 @@ def pdf_candidates(paper: dict) -> list[str]:
     crossref_url = paper.get("url") or ""
     if crossref_url.lower().endswith(".pdf"):
         urls.append(crossref_url)
-    return list(dict.fromkeys(urls))
+    return [u for u in dict.fromkeys(urls)
+            if urllib.parse.urlparse(u).scheme in {'http', 'https'}
+            and not ((urllib.parse.urlparse(u).hostname or '').casefold() == 'arxiv.org'
+                     or (urllib.parse.urlparse(u).hostname or '').casefold().endswith('.arxiv.org'))]
 
 
 def download_pdf(paper: dict, output_dir: Path) -> dict:
@@ -125,7 +130,8 @@ def download_pdf(paper: dict, output_dir: Path) -> dict:
 
 
 def import_records(records: list[dict], execute: bool) -> list[dict]:
-    items = read_zotero_items()
+    if len(records)>10:
+        raise ValueError('maximum_10_papers_per_batch')
     for paper in records:
         items = read_zotero_items()
         existing_keys = find_existing_parent_keys(items, paper)
@@ -135,27 +141,32 @@ def import_records(records: list[dict], execute: bool) -> list[dict]:
             continue
         if existing_keys:
             existing = next(item for item in items if item.get("key") == existing_keys[0])
+            if existing_identity_conflict(existing, paper):
+                paper['status'] = 'metadata_conflict'
+                continue
             paper["parent_key"] = existing.get("key")
-            paper["status"] = "duplicate_existing"
-            children = fetch_json(f"http://localhost:23119/api/users/0/items/{existing['key']}/children?limit=100")
-            pdfs = [child for child in children if child.get("data", {}).get("contentType") == "application/pdf"]
-            if pdfs:
-                paper["attachment_key"] = pdfs[0].get("key")
+            try:
+                paper['attachment_key'] = verified_existing_attachment(paper, items)
+                paper['status'] = 'duplicate_existing'
+            except (ValueError, TypeError, OSError) as exc:
+                paper.pop('attachment_key', None)
+                paper['status'] = 'manual_review'
+                paper['reconciliation_reason'] = str(exc)
             continue
         if not execute:
             paper["status"] = "dry_run_ready"
             continue
         session_id = f"paper-import-{paper['number']}-{int(time.time())}"
         connector_id = f"obsidian-paper-{paper['number']}-{int(time.time() * 1000)}"
-        status, body = zotero_connector_save_item(build_connector_payload(paper, session_id, connector_id))
+        reconciliation={}
+        status, body = zotero_connector_save_item(build_connector_payload(paper, session_id, connector_id), reconciliation=reconciliation)
         paper["write_status"] = status
         paper["write_response"] = body.decode("utf-8", errors="replace")
         if status not in (200, 201):
             paper["status"] = "manual_review"
             continue
-        time.sleep(0.8)
-        after_items = read_zotero_items()
-        decision = classify_post_write_matches(items, after_items, paper)
+        after_items = reconciliation['after']
+        decision = reconciliation['decision']
         paper["post_write_parent_keys"] = decision["duplicate_parent_keys"]
         if decision["status"] != "unique_parent":
             paper["duplicate_parent_keys"] = decision["duplicate_parent_keys"]
@@ -180,20 +191,21 @@ def import_records(records: list[dict], execute: bool) -> list[dict]:
         paper["parent_key"] = parent.get("key")
         pdf_path = paper.get("pdf_path")
         if pdf_path and Path(pdf_path).exists() and is_valid_pdf_bytes(Path(pdf_path).read_bytes()[:1024]):
-            upload_status, upload_body = zotero_connector_upload_attachment(session_id, connector_id, pdf_path, paper.get("pdf_url", ""))
+            upload_status, upload_body = zotero_connector_upload_attachment(session_id, connector_id, pdf_path, paper.get("pdf_url", ""), publication_verification=paper.get('publication_verification'))
             paper["attachment_write_status"] = upload_status
             paper["attachment_write_response"] = upload_body.decode("utf-8", errors="replace")
             time.sleep(1.0)
-            children = fetch_json(f"http://localhost:23119/api/users/0/items/{parent['key']}/children?limit=100")
-            pdfs = [child for child in children if child.get("data", {}).get("contentType") == "application/pdf"]
-            if upload_status in (200, 201) and pdfs:
-                paper["attachment_key"] = pdfs[-1].get("key")
-                paper["status"] = "imported_pdf"
-            else:
-                paper["status"] = "imported_metadata"
+            final_items=read_zotero_items()
+            try:
+                if upload_status not in (200,201): raise ValueError('attachment_write_not_confirmed')
+                paper['attachment_key']=verified_existing_attachment(paper,final_items)
+                paper['status']='imported_pdf'
+            except (ValueError,TypeError,OSError) as exc:
+                paper.pop('attachment_key',None)
+                paper['status']='manual_review'
+                paper['reconciliation_reason']=str(exc)
         else:
             paper["status"] = "imported_metadata"
-        items = read_zotero_items()
     return records
 
 

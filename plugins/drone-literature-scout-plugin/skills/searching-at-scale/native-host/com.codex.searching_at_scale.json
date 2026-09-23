@@ -1,9 +1,7 @@
 {
   "name": "com.codex.searching_at_scale",
-  "description": "Searching at Scale Edge public marketplace projection bridge",
-  "path": "C:\\path\\to\\SearchingAtScaleNativeHost.v2.exe",
+  "description": "Searching at Scale Edge bridge (install rewrites path)",
+  "path": "PLACEHOLDER_RUN_install_edge_native_host.ps1",
   "type": "stdio",
-  "allowed_origins": [
-    "chrome-extension://ackhakolgkcedgagblkfbjfnkceplcop/"
-  ]
+  "allowed_origins": ["chrome-extension://ackhakolgkcedgagblkfbjfnkceplcop/"]
 }

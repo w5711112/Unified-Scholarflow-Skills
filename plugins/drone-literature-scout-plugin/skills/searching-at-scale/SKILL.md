@@ -118,6 +118,7 @@ description: Use when a user needs broad or exhaustive current-web research, enu
 | Edge Python worker | `scripts/edge_marketplace_query.py` |
 | Edge Node 客户端 | `scripts/edge_extension_client.mjs` |
 | Native Host 安装 | `scripts/install_edge_native_host.ps1` |
+| 任意宿主 Edge 桥接（含 MiMo） | `scripts/edge_bridge_ctl.py`、`references/mimo-edge-integration.md` |
 | Edge 权限白名单 | `edge-extension/manifest.json` |
 | Edge profile 启动 | `scripts/launch_edge_profile.py` |
 | 临时 SearXNG 生命周期/查询 | `scripts/runtime_manager.py`、`scripts/searxng_query.py` |

@@ -458,7 +458,7 @@ class EdgeNativeHostTests(unittest.TestCase):
 
         for name, source_url in (
             ("query", "https://search.jd.com/Search?keyword=x"),
-            ("userinfo", "https://<YOUR_EMAIL>/Search"),
+            ("userinfo", "https://user@search.jd.com/Search"),
             ("fragment", "https://search.jd.com/Search#items"),
             ("wrong path", "https://search.jd.com/search"),
         ):
@@ -515,7 +515,7 @@ class EdgeNativeHostTests(unittest.TestCase):
 
         item_userinfo = result()
         item_userinfo["payload"]["items"][0]["url"] = (
-            "https://<YOUR_EMAIL>/100123.html"
+            "https://user@item.jd.com/100123.html"
         )
         invalid_results.append(("JD item userinfo", item_userinfo))
 

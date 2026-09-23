@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import sys
 import time
 import uuid
@@ -22,6 +23,8 @@ NOTICE_SUFFIX = "，已记录】"
 NOTICE_GENERIC_SUMMARY = "工具执行失败，详细原因已写入故障库"
 # capture 命中 verified 方案时的强制复用退出码：该故障不允许当新故障从头解决
 REUSE_REQUIRED_EXIT = 42
+# 已记录但尚未形成“稳定问题族 + verified 方案 + 本次效果验证”的故障。
+RESOLUTION_REQUIRED_EXIT = 43
 # 复用结果回执格式：与故障回执【发现故障：…，已记录】同风格
 REUSE_NOTICE_SUCCESS_PREFIX = "【故障的解决方案复用成功："
 REUSE_NOTICE_FAILURE_PREFIX = "【故障的解决方案复用失败："
@@ -797,12 +800,111 @@ def _advice_from_incident(incident: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _guard_failure(
+    solution: dict[str, Any], environment: dict[str, Any] | None
+) -> dict[str, Any] | None:
+    guard = solution.get("applicability_guard") or {}
+    requested = environment or {}
+    supported_guard_fields = {"os", "shell_contains", "environment_equals"}
+    unsupported_guard_fields = sorted(set(guard) - supported_guard_fields)
+    if unsupported_guard_fields:
+        return {"unsupported_guard_fields": unsupported_guard_fields}
+    allowed_os = [str(item).lower() for item in guard.get("os", [])]
+    if allowed_os and str(requested.get("os", "")).lower() not in allowed_os:
+        return {}
+    shell_needles = [str(item).lower() for item in guard.get("shell_contains", [])]
+    shell = str(requested.get("shell", "")).lower()
+    if shell_needles and (not shell or not any(item in shell for item in shell_needles)):
+        return {}
+    environment_equals = guard.get("environment_equals") or {}
+    if not isinstance(environment_equals, dict) or any(
+        requested.get(key) != value for key, value in environment_equals.items()
+    ):
+        return {}
+    return None
+
+
 def preflight(
     registry: dict[str, Any],
     *,
     component: str,
+    family_id: str | None = None,
     environment: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    if registry.get("schema_version") == 3:
+        from registry_v3 import materialize_solution_record, validate_v3
+
+        validate_v3(registry)
+        canonical = canonical_component(component)
+        families = [
+            item
+            for item in registry["problem_families"]
+            if item.get("component") == canonical
+        ]
+        if family_id is None:
+            return {
+                "action": "candidate-families" if families else "continue-without-runtime-write",
+                "reuse_required": False,
+                "family_ids": sorted(str(item["family_id"]) for item in families),
+                "matches": copy.deepcopy(families),
+            }
+        family = next((item for item in families if item.get("family_id") == family_id), None)
+        if family is None:
+            return {
+                "action": "needs-classification",
+                "reuse_required": False,
+                "family_ids": sorted(str(item["family_id"]) for item in families),
+                "matches": [],
+            }
+        family_solutions = [
+            item
+            for item in registry["solutions"]
+            if item.get("family_id") == family_id
+        ]
+        solutions = [item for item in family_solutions if item.get("status") == "verified"]
+        if len(solutions) != 1:
+            blocked = [
+                str(item["solution_id"])
+                for item in family_solutions
+                if item.get("status") in {"regressed", "retired"}
+            ]
+            return {
+                "action": "local-solution-blocked" if blocked else "needs-solution-review",
+                "reuse_required": False,
+                "family_id": family_id,
+                "solution_ids": sorted(str(item["solution_id"]) for item in solutions),
+                "blocked_solution_ids": sorted(blocked),
+            }
+        solution_record = solutions[0]
+        solution = materialize_solution_record(solution_record)
+        guard_failure = _guard_failure(solution, environment)
+        if guard_failure is not None:
+            return {
+                "action": "guard-not-satisfied",
+                "reuse_required": False,
+                "family_id": family_id,
+                "solution_id": solution["solution_id"],
+                **guard_failure,
+            }
+        return {
+            "action": "use-verified-solution",
+            "reuse_required": True,
+            "family_id": family_id,
+            "solution_id": solution["solution_id"],
+            "steps": copy.deepcopy(solution.get("steps", [])),
+            "forbidden_retries": copy.deepcopy(solution.get("forbidden_routes", [])),
+            "verification_contract": solution.get("verification_contract"),
+            "effect_contract": copy.deepcopy(solution.get("effect_contract")),
+            "quality_guard": copy.deepcopy(solution.get("quality_guard")),
+        }
+    if registry.get("schema_version") == 2:
+        return {
+            "action": "migration-required",
+            "schema_version": 2,
+            "reuse_required": False,
+            "matches": [],
+            "directive": "先迁移到 schema v3 并完成问题族分类，再决定是否强制复用。",
+        }
     current = migrate_registry(registry)
     requested_environment = environment or {}
     candidates = [
@@ -840,11 +942,58 @@ def preflight_with_fallback(
     public_registry: dict[str, Any] | None,
     *,
     component: str,
+    family_id: str | None = None,
     environment: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    if (
+        public_registry is not None
+        and local_registry.get("schema_version") == 3
+        and public_registry.get("schema_version") == 3
+    ):
+        merged = copy.deepcopy(local_registry)
+        families_by_id = {
+            str(item["family_id"]): copy.deepcopy(item)
+            for item in public_registry["problem_families"]
+        }
+        for local_family in local_registry["problem_families"]:
+            family_id_value = str(local_family["family_id"])
+            public_family = families_by_id.get(family_id_value, {})
+            combined_family = copy.deepcopy(local_family)
+            combined_family["solution_ids"] = sorted(
+                set(public_family.get("solution_ids", []))
+                | set(local_family.get("solution_ids", []))
+            )
+            families_by_id[family_id_value] = combined_family
+        solutions_by_id = {
+            str(item["solution_id"]): copy.deepcopy(item)
+            for item in public_registry["solutions"]
+        }
+        for local_solution in local_registry["solutions"]:
+            solutions_by_id[str(local_solution["solution_id"])] = copy.deepcopy(local_solution)
+        merged["problem_families"] = [
+            families_by_id[key] for key in sorted(families_by_id)
+        ]
+        merged["solutions"] = [solutions_by_id[key] for key in sorted(solutions_by_id)]
+        advice = preflight(
+            merged,
+            component=component,
+            family_id=family_id,
+            environment=environment,
+        )
+        if advice.get("action") == "use-verified-solution":
+            local_solution_ids = {
+                str(item["solution_id"]) for item in local_registry["solutions"]
+            }
+            advice["registry_source"] = (
+                "local" if advice.get("solution_id") in local_solution_ids else "public"
+            )
+        else:
+            advice["registry_source"] = "combined"
+        return advice
     local_advice = preflight(
         local_registry,
         component=component,
+        family_id=family_id,
         environment=environment,
     )
     if local_advice["action"] == "use-verified-solution":
@@ -856,9 +1005,20 @@ def preflight_with_fallback(
         public_advice = preflight(
             public_registry,
             component=component,
+            family_id=family_id,
             environment=environment,
         )
         if public_advice["action"] == "use-verified-solution":
+            blocked = set(local_advice.get("blocked_solution_ids", []))
+            if public_advice.get("solution_id") in blocked:
+                return {
+                    "action": "local-solution-blocked",
+                    "reuse_required": False,
+                    "family_id": public_advice.get("family_id"),
+                    "blocked_solution_ids": sorted(blocked),
+                    "registry_source": "local",
+                    "directive": "本地已记录该方案回归或退役，公共库不得绕过本地阻断。",
+                }
             result = copy.deepcopy(public_advice)
             result["registry_source"] = "public"
             return result
@@ -942,8 +1102,70 @@ def record_reuse_result(
     verification: str,
     side_effects: list[str],
     cleanup_complete: bool,
+    actual_environment: dict[str, Any] | None = None,
     now: str | None = None,
 ) -> dict[str, Any]:
+    if registry.get("schema_version") == 3:
+        from registry_v3 import materialize_solution_record, validate_v3
+
+        result = copy.deepcopy(registry)
+        event = next(
+            (
+                item
+                for item in result["events"]
+                if item.get("event_id") == incident_id or item.get("legacy_id") == incident_id
+            ),
+            None,
+        )
+        if event is None:
+            raise KeyError(f"event not found: {incident_id}")
+        solution_id = event.get("solution_id")
+        solution_record = next(
+            (item for item in result["solutions"] if item.get("solution_id") == solution_id),
+            None,
+        )
+        if solution_record is None:
+            raise ValueError("event has no reusable solution")
+        solution = materialize_solution_record(solution_record)
+        evidence = str(verification).strip()
+        if not evidence:
+            raise ValueError("reuse result requires verification evidence")
+        if success:
+            if actual_environment is None:
+                raise ValueError("reuse success requires actual environment for guard revalidation")
+            if _guard_failure(solution, actual_environment) is not None:
+                raise ValueError("reuse success environment does not satisfy applicability guard")
+            if not effect_verified:
+                raise ValueError("reuse success requires verified equivalent effect")
+            if not cleanup_complete:
+                raise ValueError("reuse success requires cleanup completion")
+            forbidden = set((solution.get("effect_contract") or {}).get("forbidden_side_effects", []))
+            forbidden |= set((solution.get("quality_guard") or {}).get("forbidden_downgrade_routes", []))
+            violations = sorted(forbidden.intersection(side_effects))
+            if violations:
+                raise ValueError(f"forbidden side effects observed: {violations}")
+            solution_record["reuse_success_count"] = int(solution_record.get("reuse_success_count", 0)) + 1
+            if solution_record.get("status") == "regressed":
+                solution_record["status"] = "verified"
+            event["status"] = "verified"
+            event["verification"] = evidence
+        else:
+            solution_record["reuse_failure_count"] = int(solution_record.get("reuse_failure_count", 0)) + 1
+            solution_record["status"] = "regressed"
+        solution_record["last_verification"] = evidence
+        if success:
+            solution_record["last_verified_environment"] = copy.deepcopy(actual_environment)
+        else:
+            solution_record["last_failure_verification"] = evidence
+            solution_record["last_attempt_environment"] = copy.deepcopy(
+                actual_environment if actual_environment is not None else event.get("environment") or {}
+            )
+        timestamp = now or _now_iso()
+        if success:
+            event["last_seen"] = timestamp
+        result["updated_at"] = timestamp
+        validate_v3(result)
+        return result
     result = migrate_registry(registry)
     incident = next(
         (item for item in result["incidents"] if item["id"] == incident_id),
@@ -1009,6 +1231,44 @@ def record_promotion_result(
     if not cleanup_complete:
         raise ValueError("promotion result requires cleanup completion")
 
+    if registry.get("schema_version") == 3:
+        from registry_v3 import materialize_solution_record, validate_v3
+
+        result = copy.deepcopy(registry)
+        event = next(
+            (
+                item
+                for item in result["events"]
+                if item.get("event_id") == incident_id or item.get("legacy_id") == incident_id
+            ),
+            None,
+        )
+        if event is None or not event.get("solution_id"):
+            raise ValueError("promotion result requires an event bound to a verified solution")
+        solution = next(
+            item
+            for item in result["solutions"]
+            if item.get("solution_id") == event.get("solution_id")
+        )
+        if solution.get("catalog_source") == "builtin":
+            raise ValueError("builtin authority solutions are already promoted and cannot be rewritten locally")
+        materialized = materialize_solution_record(solution)
+        if materialized.get("status") != "verified":
+            raise ValueError("promotion result requires a verified solution")
+        if outcome == "applied" and not lightweight:
+            contract = materialized.get("effect_contract")
+            if not isinstance(contract, dict) or not str(contract.get("expected_effect", "")).strip():
+                raise ValueError("applied promotion requires an effect contract")
+        solution["promotion"] = "applied" if outcome == "applied" else "rolled_back"
+        solution["promotion_verification"] = evidence
+        solution["regression_test"] = test_path
+        event["status"] = "promoted" if outcome == "applied" else "verified"
+        timestamp = now or _now_iso()
+        event["last_seen"] = timestamp
+        result["updated_at"] = timestamp
+        validate_v3(result)
+        return result
+
     result = migrate_registry(registry)
     incident = next(
         (item for item in result["incidents"] if item["id"] == incident_id),
@@ -1038,6 +1298,35 @@ def record_promotion_result(
 
 
 def promotion_candidates(registry: dict[str, Any]) -> list[dict[str, Any]]:
+    if registry.get("schema_version") == 3:
+        from registry_v3 import materialize_solution_record, validate_v3
+
+        validate_v3(registry)
+        candidates: list[dict[str, Any]] = []
+        for solution in registry["solutions"]:
+            if (
+                solution.get("catalog_source") != "local"
+                or solution.get("status") != "verified"
+                or solution.get("promotion") in {"applied", "rolled_back"}
+            ):
+                continue
+            materialized = materialize_solution_record(solution)
+            family = next(
+                item
+                for item in registry["problem_families"]
+                if item.get("family_id") == solution.get("family_id")
+            )
+            materialized["component"] = family["component"]
+            event_ids = [
+                item["event_id"]
+                for item in registry["events"]
+                if item.get("solution_id") == solution.get("solution_id")
+                and item.get("status") in {"verified", "promoted"}
+            ]
+            if event_ids:
+                materialized["event_ids"] = event_ids
+                candidates.append(materialized)
+        return candidates
     current = migrate_registry(registry)
     return [
         copy.deepcopy(item)
@@ -1103,11 +1392,21 @@ def select_route(
 
 def load_registry(path: str | Path) -> dict[str, Any]:
     registry = json.loads(Path(path).read_text(encoding="utf-8"))
+    if registry.get("schema_version") == 3:
+        from registry_v3 import validate_v3
+
+        validate_v3(registry)
+        return registry
     return migrate_registry(registry)
 
 
 def save_registry_atomic(path: str | Path, registry: dict[str, Any]) -> None:
-    validate_registry(registry)
+    if registry.get("schema_version") == 3:
+        from registry_v3 import validate_v3
+
+        validate_v3(registry)
+    else:
+        validate_registry(registry)
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     payload = json.dumps(registry, ensure_ascii=False, indent=2) + "\n"
@@ -1204,7 +1503,9 @@ def mutate_registry_atomic(
     target = Path(path)
     with registry_lock(target):
         registry = _load_or_empty(target)
-        updated = migrate_registry(mutator(registry))
+        updated = mutator(registry)
+        if updated.get("schema_version") != 3:
+            updated = migrate_registry(updated)
         save_registry_atomic(target, updated)
         return updated
 
@@ -1228,6 +1529,27 @@ def _build_parser() -> argparse.ArgumentParser:
     migrate = subparsers.add_parser("migrate")
     migrate.add_argument("--registry", type=Path, required=True)
 
+    migrate_v3 = subparsers.add_parser("migrate-v3")
+    migrate_v3.add_argument("--registry", type=Path, required=True)
+    migrate_v3_mode = migrate_v3.add_mutually_exclusive_group(required=True)
+    migrate_v3_mode.add_argument("--dry-run", action="store_true")
+    migrate_v3_mode.add_argument("--apply", action="store_true")
+    migrate_v3.add_argument("--report", type=Path)
+    migrate_v3.add_argument("--preview", type=Path)
+
+    family_report_parser = subparsers.add_parser("family-report")
+    family_report_parser.add_argument("--registry", type=Path, required=True)
+
+    classification_report_parser = subparsers.add_parser("classification-report")
+    classification_report_parser.add_argument("--registry", type=Path, required=True)
+
+    closure_parser = subparsers.add_parser("closure-check")
+    closure_parser.add_argument("--registry", type=Path, required=True)
+    closure_parser.add_argument("--incident-id", required=True)
+
+    refresh_catalog_parser = subparsers.add_parser("refresh-catalog")
+    refresh_catalog_parser.add_argument("--registry", type=Path, required=True)
+
     validate = subparsers.add_parser("validate")
     validate.add_argument("--registry", type=Path, required=True)
 
@@ -1235,12 +1557,20 @@ def _build_parser() -> argparse.ArgumentParser:
     match.add_argument("--registry", type=Path, required=True)
     match.add_argument("--component", required=True)
     match.add_argument("--symptom", required=True)
+    match.add_argument("--family-id")
+    match.add_argument("--operation")
+    match.add_argument("--failure-phase")
+    match.add_argument("--error-class")
     match.add_argument("--environment", action="append", default=[])
 
     preflight_parser = subparsers.add_parser("preflight")
     preflight_parser.add_argument("--registry", type=Path, required=True)
     preflight_parser.add_argument("--fallback-registry", type=Path)
     preflight_parser.add_argument("--component", required=True)
+    preflight_parser.add_argument("--family-id")
+    preflight_parser.add_argument("--operation")
+    preflight_parser.add_argument("--failure-phase")
+    preflight_parser.add_argument("--error-class")
     preflight_parser.add_argument("--environment", action="append", default=[])
 
     capture_parser = subparsers.add_parser("capture")
@@ -1251,6 +1581,10 @@ def _build_parser() -> argparse.ArgumentParser:
     capture_event_parser.add_argument("--registry", type=Path, required=True)
     capture_event_parser.add_argument("--component", required=True)
     capture_event_parser.add_argument("--symptom", required=True)
+    capture_event_parser.add_argument("--family-id")
+    capture_event_parser.add_argument("--operation")
+    capture_event_parser.add_argument("--failure-phase")
+    capture_event_parser.add_argument("--error-class")
     capture_event_parser.add_argument("--environment", action="append", default=[])
     capture_event_parser.add_argument("--route")
     capture_event_parser.add_argument("--notice-summary")
@@ -1263,6 +1597,7 @@ def _build_parser() -> argparse.ArgumentParser:
     reuse_parser.add_argument("--verification", required=True)
     reuse_parser.add_argument("--side-effect", action="append", default=[])
     reuse_parser.add_argument("--cleanup-complete", action="store_true")
+    reuse_parser.add_argument("--environment", action="append", default=[])
     reuse_parser.add_argument(
         "--notice-summary",
         default=None,
@@ -1299,6 +1634,20 @@ def _build_parser() -> argparse.ArgumentParser:
     resolve.add_argument("--solution", required=True)
     resolve.add_argument("--verification", required=True)
     resolve.add_argument("--preferred-route", required=True)
+    resolve.add_argument("--family-id")
+    resolve.add_argument("--solution-id")
+    resolve.add_argument("--family-title")
+    resolve.add_argument("--solution-title")
+    resolve.add_argument("--operation")
+    resolve.add_argument("--failure-phase")
+    resolve.add_argument("--error-class")
+    resolve.add_argument("--root-cause")
+    resolve.add_argument("--diagnosis-evidence")
+    resolve.add_argument("--step", action="append", default=[])
+    resolve.add_argument("--applicability-guard")
+    resolve.add_argument("--forbidden-route", action="append", default=[])
+    resolve.add_argument("--verification-contract")
+    resolve.add_argument("--regression-test")
     resolve.add_argument(
         "--quality-guard",
         default=None,
@@ -1324,7 +1673,131 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
+    v2_write_commands = {
+        "capture",
+        "capture-event",
+        "reuse-result",
+        "promotion-result",
+        "record",
+        "resolve",
+        "refresh-catalog",
+    }
+    if args.command in v2_write_commands:
+        raw_registry = json.loads(args.registry.read_text(encoding="utf-8"))
+        if raw_registry.get("schema_version") == 2:
+            print(
+                json.dumps(
+                    {
+                        "action": "migration-required",
+                        "schema_version": 2,
+                        "directive": "先执行 migrate-v3 --dry-run 并核对守恒报告，再使用 --apply；v2 只允许读取、校验和显式迁移。",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+            return 3
+    if args.command == "migrate-v3":
+        from migrate_registry_v3 import migrate_path
+
+        result = migrate_path(
+            args.registry,
+            apply=args.apply,
+            report_path=args.report,
+            preview_path=args.preview,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+
+    if args.command == "family-report":
+        from registry_v3 import family_report
+
+        print(json.dumps(family_report(load_registry(args.registry)), ensure_ascii=False, indent=2))
+        return 0
+
+    if args.command == "classification-report":
+        registry = load_registry(args.registry)
+        if registry.get("schema_version") != 3:
+            raise ValueError("classification-report requires schema v3; run migrate-v3 --dry-run first")
+        confidence: dict[str, int] = {}
+        families: dict[str, int] = {}
+        for event in registry["events"]:
+            key = str(event.get("classification_confidence") or "unknown")
+            confidence[key] = confidence.get(key, 0) + 1
+            family = str(event.get("family_id") or "unknown")
+            families[family] = families.get(family, 0) + 1
+        print(
+            json.dumps(
+                {
+                    "events": len(registry["events"]),
+                    "confidence": dict(sorted(confidence.items())),
+                    "families": dict(sorted(families.items())),
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return 0
+
+    if args.command == "closure-check":
+        from registry_v3 import event_closure_report
+
+        raw = json.loads(args.registry.read_text(encoding="utf-8"))
+        if raw.get("schema_version") != 3:
+            print(
+                json.dumps(
+                    {
+                        "closed": False,
+                        "action": "migration-required",
+                        "schema_version": raw.get("schema_version"),
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+            return 3
+        report = event_closure_report(raw, args.incident_id)
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+        return 0 if report["closed"] else RESOLUTION_REQUIRED_EXIT
+
+    if args.command == "refresh-catalog":
+        from registry_v3 import refresh_authority_catalog
+
+        target = Path(args.registry)
+        with registry_lock(target):
+            source_bytes = target.read_bytes()
+            raw = json.loads(source_bytes.decode("utf-8"))
+            updated, report = refresh_authority_catalog(raw)
+            if report["total"]:
+                stamp = _now_iso().replace(":", "").replace("+", "-")
+                backup = target.with_name(
+                    f"{target.name}.pre-refresh-catalog-{stamp}.bak"
+                )
+                shutil.copyfile(target, backup)
+                if backup.read_bytes() != source_bytes:
+                    backup.unlink(missing_ok=True)
+                    raise ValueError("catalog refresh byte backup verification failed")
+                save_registry_atomic(target, updated)
+                report["backup"] = str(backup)
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+        return 0
+
     if args.command == "migrate":
+        current = load_registry(args.registry)
+        if current.get("schema_version") == 3:
+            print(
+                json.dumps(
+                    {
+                        "action": "already-current",
+                        "migrated": False,
+                        "events": len(current["events"]),
+                        "schema_version": 3,
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+            return 0
         registry = mutate_registry_atomic(args.registry, lambda current: current)
         print(
             json.dumps(
@@ -1340,11 +1813,12 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "validate":
         registry = load_registry(args.registry)
+        item_key = "events" if registry.get("schema_version") == 3 else "incidents"
         print(
             json.dumps(
                 {
                     "valid": True,
-                    "incidents": len(registry["incidents"]),
+                    item_key: len(registry[item_key]),
                     "schema_version": registry["schema_version"],
                 },
                 ensure_ascii=False,
@@ -1354,12 +1828,35 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "match":
         registry = load_registry(args.registry)
-        matches = match_incidents(
-            registry,
-            component=args.component,
-            symptom=args.symptom,
-            environment=_parse_environment(args.environment),
-        )
+        if registry.get("schema_version") == 3:
+            from problem_families import classify_problem
+            from registry_v3 import merged_family_catalog
+
+            structured = {
+                key: getattr(args, key)
+                for key in ("family_id", "operation", "failure_phase", "error_class")
+                if getattr(args, key)
+            }
+            classification = classify_problem(
+                args.component,
+                args.symptom,
+                structured,
+                _parse_environment(args.environment),
+                merged_family_catalog(registry),
+            )
+            family_id = classification.family_id
+            matches = [
+                copy.deepcopy(item)
+                for item in registry["events"]
+                if family_id is not None and item.get("family_id") == family_id
+            ]
+        else:
+            matches = match_incidents(
+                registry,
+                component=args.component,
+                symptom=args.symptom,
+                environment=_parse_environment(args.environment),
+            )
         print(json.dumps(matches, ensure_ascii=False, indent=2))
         return 0
 
@@ -1370,27 +1867,47 @@ def main(argv: list[str] | None = None) -> int:
             if args.fallback_registry is not None
             else None
         )
+        family_id = args.family_id
+        if family_id is None and local_registry.get("schema_version") == 3:
+            structured = {
+                key: getattr(args, key)
+                for key in ("operation", "failure_phase", "error_class")
+                if getattr(args, key)
+            }
+            if structured:
+                from problem_families import classify_problem
+                from registry_v3 import merged_family_catalog
+
+                family_id = classify_problem(
+                    args.component,
+                    "",
+                    structured,
+                    _parse_environment(args.environment),
+                    merged_family_catalog(local_registry),
+                ).family_id
         advice = preflight_with_fallback(
             local_registry,
             public_registry,
             component=args.component,
+            family_id=family_id,
             environment=_parse_environment(args.environment),
         )
         print(json.dumps(advice, ensure_ascii=False, indent=2))
-        return 0
+        return REUSE_REQUIRED_EXIT if advice.get("action") == "use-verified-solution" else 0
 
     if args.command == "scan-fragments":
         # 去碎片健康检查：库内应无"存储组件 ≠ 规范组件"的记录（新捕获已自动归一）
         registry = load_registry(args.registry)
+        items = registry["events"] if registry.get("schema_version") == 3 else registry["incidents"]
         noncanonical = {}
-        for incident in registry["incidents"]:
+        for incident in items:
             c = canonical_component(incident["component"])
             if c != incident["component"]:
                 noncanonical.setdefault(incident["component"], []).append(c)
         report = {
-            "incidents": len(registry["incidents"]),
-            "distinct_components": len({i["component"] for i in registry["incidents"]}),
-            "distinct_canonical": len({canonical_component(i["component"]) for i in registry["incidents"]}),
+            "events" if registry.get("schema_version") == 3 else "incidents": len(items),
+            "distinct_components": len({i["component"] for i in items}),
+            "distinct_canonical": len({canonical_component(i["component"]) for i in items}),
             "noncanonical_records": sum(len(v) for v in noncanonical.values()),
             "noncanonical_components": {k: sorted(set(v)) for k, v in noncanonical.items()},
             "status": "ok" if not noncanonical else "consolidate-needed",
@@ -1435,18 +1952,76 @@ def main(argv: list[str] | None = None) -> int:
             }
             if args.route and args.route.strip():
                 incident["preferred_route"] = args.route.strip()
+            for key in ("family_id", "operation", "failure_phase", "error_class"):
+                value = getattr(args, key, None)
+                if value:
+                    incident[key] = value
+
+        current_registry = load_registry(args.registry)
+        if current_registry.get("schema_version") == 2:
+            print(
+                json.dumps(
+                    {
+                        "action": "migration-required",
+                        "schema_version": 2,
+                        "directive": "先执行 migrate-v3 --dry-run 并核对守恒报告，再使用 --apply；v2 写入不会隐式迁移。",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+            return 3
         result_holder: dict[str, Any] = {}
 
         def capture_mutator(registry: dict[str, Any]) -> dict[str, Any]:
+            if registry.get("schema_version") == 3:
+                from registry_v3 import capture_event_v3
+
+                structured = {
+                    key: incident[key]
+                    for key in ("family_id", "operation", "failure_phase", "error_class")
+                    if incident.get(key)
+                }
+                updated, event = capture_event_v3(
+                    registry,
+                    component=str(incident["component"]),
+                    symptom=str(incident["symptom_signature"]),
+                    structured=structured,
+                    environment=incident.get("environment") or {},
+                )
+                family_id = (
+                    event["family_id"]
+                    if not str(event["family_id"]).startswith("unclassified.")
+                    else None
+                )
+                advice = preflight(
+                    updated,
+                    component=str(incident["component"]),
+                    family_id=family_id,
+                    environment=incident.get("environment") or {},
+                )
+                advice["incident_id"] = event["event_id"]
+                advice["resolve_required"] = (
+                    advice.get("action") != "use-verified-solution"
+                )
+                if advice["resolve_required"]:
+                    advice["directive"] = (
+                        "继续诊断并实际修复；用 resolve 固化稳定问题族和 verified 方案，"
+                        "再运行 closure-check。不得以未分类事件结束任务。"
+                    )
+                result_holder["advice"] = advice
+                result_holder["event"] = event
+                return updated
             updated, advice = capture_incident(registry, incident)
             result_holder["advice"] = advice
             return updated
 
         updated = mutate_registry_atomic(args.registry, capture_mutator)
         recorded_id = result_holder["advice"]["incident_id"]
-        stored = next(
-            item for item in updated["incidents"] if item["id"] == recorded_id
-        )
+        if updated.get("schema_version") == 3:
+            stored = next(item for item in updated["events"] if item["event_id"] == recorded_id)
+        else:
+            stored = next(item for item in updated["incidents"] if item["id"] == recorded_id)
         conversation_notice = f"{NOTICE_PREFIX}{notice_summary}{NOTICE_SUFFIX}"
         print(
             json.dumps(
@@ -1466,9 +2041,27 @@ def main(argv: list[str] | None = None) -> int:
                 file=sys.stderr,
             )
             return REUSE_REQUIRED_EXIT
-        return 0
+        print(
+            "RESOLUTION_REQUIRED: 故障已记录但尚未闭环；继续归类、修复、验证并运行 closure-check。",
+            file=sys.stderr,
+        )
+        return RESOLUTION_REQUIRED_EXIT
 
     if args.command == "reuse-result":
+        raw_registry = json.loads(args.registry.read_text(encoding="utf-8"))
+        if raw_registry.get("schema_version") == 2:
+            print(
+                json.dumps(
+                    {
+                        "action": "migration-required",
+                        "schema_version": 2,
+                        "directive": "先迁移到 schema v3；v2 仅保留读取、校验和显式迁移。",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+            return 3
         updated = mutate_registry_atomic(
             args.registry,
             lambda registry: record_reuse_result(
@@ -1479,11 +2072,19 @@ def main(argv: list[str] | None = None) -> int:
                 verification=args.verification,
                 side_effects=args.side_effect,
                 cleanup_complete=args.cleanup_complete,
+                actual_environment=_parse_environment(args.environment),
             ),
         )
-        incident = next(
-            item for item in updated["incidents"] if item["id"] == args.incident_id
-        )
+        if updated.get("schema_version") == 3:
+            incident = next(
+                item
+                for item in updated["events"]
+                if item.get("event_id") == args.incident_id or item.get("legacy_id") == args.incident_id
+            )
+        else:
+            incident = next(
+                item for item in updated["incidents"] if item["id"] == args.incident_id
+            )
         success = args.outcome == "success"
         prefix = (
             REUSE_NOTICE_SUCCESS_PREFIX if success else REUSE_NOTICE_FAILURE_PREFIX
@@ -1491,7 +2092,7 @@ def main(argv: list[str] | None = None) -> int:
         reuse_summary = _normalize_reuse_notice_summary(
             args.notice_summary,
             component=incident["component"],
-            symptom=incident["symptom_signature"],
+            symptom=incident.get("symptom_signature", incident.get("symptom", "")),
             success=success,
         )
         conversation_notice = f"{prefix}{reuse_summary}{REUSE_NOTICE_SUFFIX}"
@@ -1513,13 +2114,40 @@ def main(argv: list[str] | None = None) -> int:
                 lightweight=args.lightweight,
             ),
         )
-        incident = next(
-            item for item in updated["incidents"] if item["id"] == args.incident_id
-        )
+        if updated.get("schema_version") == 3:
+            event = next(
+                item
+                for item in updated["events"]
+                if item.get("event_id") == args.incident_id
+                or item.get("legacy_id") == args.incident_id
+            )
+            incident = next(
+                item
+                for item in updated["solutions"]
+                if item.get("solution_id") == event.get("solution_id")
+            )
+        else:
+            incident = next(
+                item for item in updated["incidents"] if item["id"] == args.incident_id
+            )
         print(json.dumps(incident, ensure_ascii=False, indent=2))
         return 0
 
     if args.command == "record":
+        current_registry = load_registry(args.registry)
+        if current_registry.get("schema_version") == 3:
+            print(
+                json.dumps(
+                    {
+                        "action": "use-capture-event",
+                        "schema_version": 3,
+                        "directive": "schema v3 请使用 capture-event；record 只识别历史事故对象。",
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+            return 3
         incident = json.loads(args.incident_file.read_text(encoding="utf-8"))
         updated = mutate_registry_atomic(
             args.registry,
@@ -1538,6 +2166,33 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "retry-check":
         registry = load_registry(args.registry)
+        if registry.get("schema_version") == 3:
+            event = next(
+                (
+                    item
+                    for item in registry["events"]
+                    if item.get("event_id") == args.incident_id
+                    or item.get("legacy_id") == args.incident_id
+                ),
+                None,
+            )
+            if event is None or not event.get("solution_id"):
+                print(json.dumps({"allowed": True}, ensure_ascii=False))
+                return 0
+            from registry_v3 import materialize_solution_record
+
+            solution_record = next(
+                item
+                for item in registry["solutions"]
+                if item.get("solution_id") == event.get("solution_id")
+            )
+            solution = materialize_solution_record(solution_record)
+            if args.route in set(solution.get("forbidden_routes", [])):
+                raise RetryBlockedError(
+                    f"forbidden v3 solution route for {args.incident_id}: {args.route}"
+                )
+            print(json.dumps({"allowed": True}, ensure_ascii=False))
+            return 0
         assert_retry_allowed(
             registry,
             incident_id=args.incident_id,
@@ -1545,6 +2200,71 @@ def main(argv: list[str] | None = None) -> int:
             parameters=json.loads(args.parameters_json),
         )
         print(json.dumps({"allowed": True}, ensure_ascii=False))
+        return 0
+
+    current_registry = load_registry(args.registry)
+    if current_registry.get("schema_version") == 3:
+        from registry_v3 import resolve_event_v3
+
+        family_id = str(args.family_id or "").strip()
+        solution_id = str(args.solution_id or "").strip()
+        if not family_id or not solution_id:
+            raise ValueError("v3 resolve requires --family-id and --solution-id")
+        existing_family = next(
+            (
+                item
+                for item in current_registry["problem_families"]
+                if item.get("family_id") == family_id
+            ),
+            {},
+        )
+
+        def parse_object(raw: str | None, label: str, *, nullable: bool = False) -> dict[str, Any] | None:
+            if raw is None:
+                if nullable:
+                    return None
+                raise ValueError(f"v3 resolve requires --{label.replace('_', '-')}")
+            value = json.loads(raw)
+            if not isinstance(value, dict):
+                raise ValueError(f"{label} must be a JSON object")
+            return value
+
+        updated = mutate_registry_atomic(
+            args.registry,
+            lambda registry: resolve_event_v3(
+                registry,
+                event_id=args.incident_id,
+                family_id=family_id,
+                solution_id=solution_id,
+                family_title=str(args.family_title or existing_family.get("title") or ""),
+                operation=str(args.operation or existing_family.get("operation") or ""),
+                failure_phase=str(
+                    args.failure_phase or existing_family.get("failure_phase") or ""
+                ),
+                error_class=str(args.error_class or existing_family.get("error_class") or ""),
+                root_cause=str(args.root_cause or ""),
+                diagnosis_evidence=str(args.diagnosis_evidence or ""),
+                solution_title=str(args.solution_title or args.solution),
+                steps=args.step or [args.solution],
+                applicability_guard=parse_object(
+                    args.applicability_guard, "applicability_guard"
+                )
+                or {},
+                forbidden_routes=args.forbidden_route,
+                verification_contract=str(args.verification_contract or ""),
+                effect_contract=parse_object(args.effect_contract, "effect_contract") or {},
+                quality_guard=parse_object(args.quality_guard, "quality_guard", nullable=True),
+                regression_test=args.regression_test,
+                verification=args.verification,
+            ),
+        )
+        event = next(
+            item
+            for item in updated["events"]
+            if item.get("event_id") == args.incident_id
+            or item.get("legacy_id") == args.incident_id
+        )
+        print(json.dumps(event, ensure_ascii=False, indent=2))
         return 0
 
     def resolve_incident(registry: dict[str, Any]) -> dict[str, Any]:

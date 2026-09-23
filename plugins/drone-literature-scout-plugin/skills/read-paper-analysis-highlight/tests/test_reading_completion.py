@@ -78,6 +78,7 @@ def native_manifest(count: int = 2) -> dict:
 
 def completed_verification(**overrides: bool) -> dict:
     verification = {
+        "workflow_scope": "full",
         "note_completed": True,
         "pdf_position_verified": True,
         "note_contract_valid": True,
@@ -86,11 +87,77 @@ def completed_verification(**overrides: bool) -> dict:
         "pdf_memory_layer_verified": True,
         "memory_sentence_synced": True,
         "obsidian_uri_verified": True,
+        "language_gate_report": {
+            "valid": True,
+            "receipt_sha256": "a" * 64,
+        },
+        "version_reconciliation_report": {
+            "valid": True,
+            "status": "not_required",
+            "receipt_sha256": "b" * 64,
+        },
     }
     verification.update(overrides)
     return verification
 
 class ReadingCompletionTests(unittest.TestCase):
+    def test_obsidian_only_scope_cannot_reach_completed_status(self):
+        pages = [page_entry(page) for page in range(1, 5)]
+        with self.assertRaisesRegex(CompletionError, "workflow_scope"):
+            validate_completion(
+                pages,
+                native_manifest(),
+                completed_verification(workflow_scope="obsidian-only"),
+                "已AI全文读",
+            )
+
+    def test_completed_status_requires_valid_language_gate_report(self):
+        pages = [page_entry(page) for page in range(1, 5)]
+        for value in (None, {"valid": False, "receipt_sha256": "a" * 64}):
+            verification = completed_verification()
+            verification["language_gate_report"] = value
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(CompletionError, "language gate"):
+                    validate_completion(
+                        pages,
+                        native_manifest(),
+                        verification,
+                        "已AI全文读",
+                    )
+
+    def test_receipt_hashes_must_be_lowercase_sha256(self):
+        pages = [page_entry(page) for page in range(1, 5)]
+        for field in (
+            "language_gate_report",
+            "version_reconciliation_report",
+        ):
+            verification = completed_verification()
+            verification[field]["receipt_sha256"] = "z" * 64
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(CompletionError, "report"):
+                    validate_completion(
+                        pages,
+                        native_manifest(),
+                        verification,
+                        "已AI全文读",
+                    )
+
+    def test_version_conflict_requires_verified_reconciliation_report(self):
+        pages = [page_entry(page) for page in range(1, 5)]
+        verification = completed_verification()
+        verification["version_reconciliation_report"] = {
+            "valid": False,
+            "status": "VERSION_CONFLICT",
+            "receipt_sha256": "b" * 64,
+        }
+        with self.assertRaisesRegex(CompletionError, "version reconciliation"):
+            validate_completion(
+                pages,
+                native_manifest(),
+                verification,
+                "已AI全文读",
+            )
+
     def test_ledger_requires_every_page_once(self):
         with self.assertRaises(LedgerError):
             validate_ledger([page_entry(1), page_entry(3), page_entry(4)], 4)

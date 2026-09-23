@@ -128,7 +128,7 @@ const INVALID_LINKS = [
   ['duplicate page parameter', {
     href: 'https://search.jd.com/Search?keyword=%E5%B0%8F%E7%B1%B315&page=3&page=5',
   }],
-  ['userinfo', { href: 'https://example:password@localhost/Search?keyword=%E5%B0%8F%E7%B1%B315&page=3' }],
+  ['userinfo', { href: 'https://user:pass@search.jd.com/Search?keyword=%E5%B0%8F%E7%B1%B315&page=3' }],
   ['fragment', { href: 'https://search.jd.com/Search?keyword=%E5%B0%8F%E7%B1%B315&page=3#next' }],
   ['hidden attribute', { href: 'https://search.jd.com/Search?keyword=%E5%B0%8F%E7%B1%B315&page=3', hidden: true }],
   ['disabled class', {

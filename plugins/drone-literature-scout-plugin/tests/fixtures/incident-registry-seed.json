@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-07-29T00:00:00+08:00",
+  "incidents": [
+    {
+      "id": "13b16c933c7b6ba1301c",
+      "component": "zotero-run-js",
+      "symptom_signature": "return not in function",
+      "root_cause": "Zotero Run JavaScript did not execute the loader as an async function.",
+      "known_good_solution": "Open a fresh Run JavaScript window, set and verify the async toggle, then paste the exact wrapper and execute it.",
+      "verification": "The async toggle reports state 1 and the wrapper reaches the annotation loader.",
+      "forbidden_retries": [
+        {
+          "route": "stale-codemirror-setvalue",
+          "parameters": {
+            "async": false
+          }
+        }
+      ],
+      "preferred_route": "fresh-window-wm-paste-async-toggle",
+      "environment": {
+        "os": "windows",
+        "zotero": "9"
+      },
+      "first_seen": "2026-07-29T00:00:00+08:00",
+      "last_seen": "2026-07-29T00:00:00+08:00",
+      "occurrences": 1,
+      "status": "verified",
+      "source_scope": "same-project-history",
+      "slug": "zotero-async-toggle"
+    }
+  ]
+}

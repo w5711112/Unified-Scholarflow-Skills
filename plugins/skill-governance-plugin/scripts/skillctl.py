@@ -62,7 +62,7 @@ LIFECYCLE_EVENT_ROUTES = {
 }
 LOCK_COMPONENT_FIELDS = (
     "id", "kind", "owner", "root", "relative_path", "version",
-    "interface_version", "status", "requires", "runtime", "model_policy", "mirrors", "tests",
+    "interface_version", "status", "requires", "runtime", "model_policy", "mirrors", "mirror_packages", "tests",
 )
 
 
@@ -168,6 +168,7 @@ def _tree_sha256(root: Path) -> str:
     files = sorted(
         path for path in root.rglob("*") if path.is_file() and path.name not in IGNORED_NAMES
         and not any(part in IGNORED_PARTS for part in path.parts)
+        and not (path.name.startswith("~$") and path.suffix.lower() in {".pptx", ".ppt", ".docx", ".doc", ".xlsx", ".xls"})
     )
     for path in files:
         relative = path.relative_to(root).as_posix().encode("utf-8")
@@ -347,6 +348,20 @@ def validate_registry(data: dict[str, object]) -> list[Finding]:
             skill_file = canonical / "SKILL.md" if canonical.is_dir() else canonical
             if status == "active" and (not mirror.is_file() or mirror.read_bytes() != skill_file.read_bytes()):
                 findings.append(Finding("MIRROR_MISMATCH", component_id, str(mirror)))
+        if status == "active" and item.get("kind") == "skill":
+            for spec in item.get("mirror_packages", []):
+                try:
+                    mirror = _declared_path(data, str(spec["root"]), str(spec["relative_path"]))
+                    def semantic_files(folder):
+                        files = [folder / "SKILL.md"]
+                        if (folder / "references").is_dir():
+                            files.extend(p for p in (folder / "references").rglob("*") if p.is_file())
+                        return {p.relative_to(folder).as_posix(): p for p in files if p.is_file()}
+                    originals, copies = semantic_files(canonical), semantic_files(mirror)
+                    if set(originals) != set(copies) or any(originals[name].read_bytes() != copies[name].read_bytes() for name in originals if name in copies):
+                        findings.append(Finding("MIRROR_PACKAGE_MISMATCH", component_id, str(mirror)))
+                except (KeyError, ValueError, OSError) as error:
+                    findings.append(Finding("MIRROR_PACKAGE_INVALID", component_id, str(error)))
         if status == "active" and item.get("kind") == "plugin":
             versions = {str(item.get("version", ""))}
             manifest, architecture = canonical / ".codex-plugin" / "plugin.json", canonical / "architecture-manifest.json"

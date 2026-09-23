@@ -24,6 +24,8 @@ EVIDENCE_OBJECTS = (
     "READING_LEDGER",
     "CLAIM_EVIDENCE_MAP",
     "AUTHOR_EVIDENCE",
+    "VERSION_RECONCILIATION",
+    "LANGUAGE_GATE",
     "NOTE_PACKAGE",
     "ANNOTATION_PLAN",
     "NATIVE_READBACK",
@@ -99,8 +101,13 @@ class RouteBArchitectureTests(unittest.TestCase):
             (ROOT.parents[1] / "architecture-manifest.json").read_text(encoding="utf-8")
         )["skills"]["read-paper-analysis-highlight"]
         self.assertEqual("modular-v2", manifest["migration_state"])
-        self.assertEqual("1.1.0", manifest["interface_version"])
+        self.assertEqual("1.2.0", manifest["interface_version"])
         self.assertEqual(8, manifest["numeric_guards"]["module_explanation_fields"])
+        self.assertEqual(1, manifest["numeric_guards"]["language_gate_schema_version"])
+        self.assertEqual(
+            1,
+            manifest["numeric_guards"]["version_reconciliation_schema_version"],
+        )
         self.assertIn("global.renhua", manifest["calls"]["required_preprocess"])
 
         combined = ENTRY.read_text(encoding="utf-8") + "\n" + "\n".join(

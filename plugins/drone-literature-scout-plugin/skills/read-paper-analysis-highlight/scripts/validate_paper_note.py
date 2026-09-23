@@ -337,6 +337,24 @@ def validate_paper_note(
         if not audit_results[field]:
             failures.append(f"missing research audit slot: {marker}")
 
+    claimed_problem_marker = "**作者声称解决了什么当下的问题？**"
+    research_audit_marker = "**研究问题审计："
+    claimed_problem_count = block.count(claimed_problem_marker)
+    author_claimed_current_problem_valid = claimed_problem_count == 1
+    if not author_claimed_current_problem_valid:
+        failures.append("missing author-claimed current problem section")
+    claimed_problem_position = block.find(claimed_problem_marker)
+    research_audit_position = block.find(research_audit_marker)
+    author_claimed_current_problem_order_valid = (
+        author_claimed_current_problem_valid
+        and research_audit_position >= 0
+        and claimed_problem_position < research_audit_position
+    )
+    if not author_claimed_current_problem_order_valid:
+        failures.append(
+            "author-claimed current problem must precede research audit"
+        )
+
     designated_authors_valid = True
     designated_authors = author_payload.get("designated_authors")
     if not isinstance(designated_authors, list):
@@ -408,6 +426,8 @@ def validate_paper_note(
         "author_contributions_valid": author_contributions_valid,
         "author_contribution_emphasis_valid": author_contribution_emphasis_valid,
         "author_contribution_evidence_valid": author_contribution_evidence_valid,
+        "author_claimed_current_problem_valid": author_claimed_current_problem_valid,
+        "author_claimed_current_problem_order_valid": author_claimed_current_problem_order_valid,
         "limitations_valid": section_results["limitations_valid"],
         "unreported_questions_valid": section_results[
             "unreported_questions_valid"

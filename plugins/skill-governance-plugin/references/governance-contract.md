@@ -4,7 +4,7 @@ This contract contains only enforceable invariants for the governance control pl
 
 ## Authority and identity
 
-- User-maintained authority roots must be declared explicitly in the registry. Managed runtime locations are derived state and never become Skill authority roots.
+- The only user-maintained authority roots are `agents-home`, `research-project`, and `math-modeling-2026-provincial`. `.codex` is managed system state, never a Skill authority root.
 - Every component ID is unique among active records and maps to exactly one canonical path.
 - A component path is resolved only as `roots[root_id].path / relative_path`; component records do not store absolute paths.
 - Consumers are derived by reversing `requires`; a persisted consumer list is invalid.
@@ -34,4 +34,4 @@ Migration and release order is: freeze source/hash/consumers/tests; copy to one 
 
 Findings must fail closed on duplicate active IDs or paths, missing or cyclic providers, retired-path resolution, version or lock drift, overview or guide drift, unregistered local dependencies or caches, hash drift, simultaneous staging and active mutation, unavailable rollback, stale consumers, or expired verification evidence.
 
-The architecture explicitly rejects a second registry, watcher, daemon, success ledger, persistent duplicate audit collection, and direct canonical-source deletion.
+The architecture rejects a second registry for components, resident watcher/daemon, per-run success ledger, persistent duplicate audit collection, and direct canonical-source deletion. User-approved finite scheduled maintenance may refresh deterministic derived views with conflict protection. The governor-owned candidate pool stores discovery and user-review evidence, not active component authority; adopting semantic changes still requires user review and owner verification.

@@ -138,6 +138,25 @@ def render_generated_block(data: dict[str, object]) -> str:
     else:
         lines.append("    isolated[暂无依赖边]")
     lines.append("```")
+    if data.get("overview", {}).get("source_roles"):
+        lines.extend(["", "### 当前源文件职责入口", "", "以下触发说明逐字取自当前 SKILL.md；完整规则、输入输出及边界见对应完整指南。"])
+        for item in active:
+            payload = (_component_path(item, data) / "SKILL.md").read_text(encoding="utf-8")
+            match = re.search(r"(?m)^description:\s*(.*)$", payload)
+            description = match.group(1).strip() if match else "参见完整指南中的入口说明。"
+            if description in {"|", ">", "|-", ">-"}:
+                tail = payload[match.end():].splitlines()
+                block = []
+                for line in tail:
+                    if not line.strip() and not block:
+                        continue
+                    if not line.startswith((" ", "\t")):
+                        break
+                    block.append(line.strip())
+                description = " ".join(block)
+            short = str(item["id"]).split(".")[-1]
+            directory = data["guides"]["owner_directories"][item["owner"]]
+            lines.extend(["", f"#### {short}", "", description, "", f"[[Skill完整指南/{directory}/{short}-完整指南|完整规则与全部参考]]"])
     return "\n".join(lines)
 
 
@@ -154,10 +173,12 @@ def sync_overview(registry_path: Path) -> dict[str, object]:
     note = resolve_overview_path(registry_path)
     current = note.read_text(encoding="utf-8")
     updated = _replace_auto_block(current, render_generated_block(data))
+    if updated == current:
+        return {"path": str(note), "component_count": len(_active_skills(data)), "changed": False}
     temporary = note.with_name(f".{note.name}.next")
     temporary.write_text(updated, encoding="utf-8", newline="\n")
     temporary.replace(note)
-    return {"path": str(note), "component_count": len(_active_skills(data))}
+    return {"path": str(note), "component_count": len(_active_skills(data)), "changed": True}
 
 
 def _guide_path(
@@ -178,6 +199,7 @@ def _guide_path(
     return guides_root / directory / f"{short_name}-完整指南.md"
 
 
+FENCE_RE = re.compile(r"^( {0,3})(`{3,}|~{3,})")
 INLINE_LINK_RE = re.compile(r"(!?)\[([^\]]+)\]\(([^)]+)\)")
 
 
@@ -186,6 +208,7 @@ def _rewrite_source_links(
     path: Path,
     source: Path,
     semantic: dict[Path, str],
+    strict: bool = False,
 ) -> str:
     def replace(match: re.Match[str]) -> str:
         image_prefix, label, raw_target = match.groups()
@@ -198,21 +221,50 @@ def _rewrite_source_links(
             return f"[{label}](#{semantic[candidate]})"
         if candidate.is_file():
             return f"{image_prefix}[{label}]({candidate.as_uri()})"
+        if strict:
+            raise ValueError(f"GUIDE_LINK_MISSING:{path}:{target}")
         prefix = "图像：" if image_prefix else ""
         return f"{prefix}{label}（源路径：`{target}`）"
 
-    return INLINE_LINK_RE.sub(replace, payload)
+    lines = payload.splitlines(keepends=True)
+    out: list[str] = []
+    in_fence = False
+    fence_char = ""
+    fence_len = 0
+
+    for line in lines:
+        stripped = line.rstrip("\r\n")
+        if not in_fence:
+            m = FENCE_RE.match(stripped)
+            if m:
+                in_fence = True
+                fence_char = m.group(2)[0]
+                fence_len = len(m.group(2))
+                out.append(line)
+            else:
+                out.append(INLINE_LINK_RE.sub(replace, line))
+        else:
+            m = FENCE_RE.match(stripped)
+            if m and m.group(2)[0] == fence_char and len(m.group(2)) >= fence_len:
+                after_fence = stripped[m.end():].strip()
+                if not after_fence:
+                    in_fence = False
+            out.append(line)
+
+    return "".join(out)
 
 
 def _render_source_file(
     path: Path,
     source: Path,
     semantic: dict[Path, str],
+    strict: bool = False,
 ) -> str:
     relative = path.relative_to(source).as_posix()
     payload = path.read_text(encoding="utf-8")
-    payload = _rewrite_source_links(payload, path, source, semantic)
-    return f"## {relative}\n\n{payload.rstrip()}"
+    payload = _rewrite_source_links(payload, path, source, semantic, strict)
+    anchor = semantic[path.resolve()]
+    return f"## {relative}\n\n{anchor}\n\n{payload.rstrip()}"
 
 
 def render_guide(component: dict[str, object], data: dict[str, object]) -> str:
@@ -220,8 +272,8 @@ def render_guide(component: dict[str, object], data: dict[str, object]) -> str:
     digest = source_tree_sha256(component, data)
     component_id = str(component["id"])
     short_name = component_id.split(".")[-1]
-    files = _semantic_files(source)
-    semantic = {path.resolve(): path.relative_to(source).as_posix() for path in files}
+    files = sorted(_semantic_files(source), key=lambda p: (p != source / "SKILL.md", p.as_posix()))
+    semantic = {path.resolve(): "^source-" + hashlib.sha256(path.relative_to(source).as_posix().encode()).hexdigest()[:16] for path in files}
     parts = [
         f"# {short_name} 完整指南",
         "",
@@ -237,7 +289,7 @@ def render_guide(component: dict[str, object], data: dict[str, object]) -> str:
     ]
     for path in files:
         try:
-            rendered = _render_source_file(path, source, semantic)
+            rendered = _render_source_file(path, source, semantic, bool(data.get("guides", {}).get("strict_links")))
         except UnicodeDecodeError:
             relative = path.relative_to(source).as_posix()
             rendered = f"## {relative}\n\n该文件不是 UTF-8 文本，未嵌入正文。"
@@ -260,10 +312,12 @@ def sync_guides(
         raise ValueError(f"GUIDE_COMPONENT_UNKNOWN:{','.join(unknown)}")
     changed: list[str] = []
     unchanged: list[str] = []
+    # Render every selected guide before any write; invalid links cannot leave a partial batch.
+    prepared = {component_id: render_guide(active[component_id], data) for component_id in selected_ids}
     for component_id in selected_ids:
         component = active[component_id]
         guide = _guide_path(guides_root, component, config)
-        rendered = render_guide(component, data)
+        rendered = prepared[component_id]
         if guide.is_file() and guide.read_text(encoding="utf-8") == rendered:
             unchanged.append(component_id)
             continue

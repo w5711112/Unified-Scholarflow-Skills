@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DRAFT_ROOT = Path(
     os.environ.get(
         "RENHUA_DRAFT_ROOT",
-        r"<USER_HOME>\.zcode\workspace\default\humanize-compare\renhua-draft",
+        r"C:\Users\w5711112\.zcode\workspace\default\humanize-compare\renhua-draft",
     )
 )
 REFS = ROOT / "references"
@@ -50,12 +50,14 @@ class BehaviorContractTests(unittest.TestCase):
         ):
             self.assertIn(token, text)
 
-    def test_s2_three_scenes_keep_their_exemptions_and_precedence(self) -> None:
+    def test_s2_five_scenes_keep_their_exemptions_and_precedence(self) -> None:
         text = combined()
         for token in (
             "paper-notes",
             "grant-proposal",
             "work-doc",
+            "general-text",
+            "dialogue",
             "目标—方案—可行性框架不动",
             "R6/R11 不得打散",
             "R9 只处理明显赘疣",
@@ -64,6 +66,7 @@ class BehaviorContractTests(unittest.TestCase):
             "论文结论章、摘要的总结句",
             "场景判定中的豁免条款",
             "规则之间冲突时，编号小者优先",
+            "不卑不亢",
         ):
             self.assertIn(token, text)
 
@@ -140,12 +143,16 @@ class BehaviorContractTests(unittest.TestCase):
             "约0.75pt",
             "无竖线、无内部横线",
             "水平居中、垂直居中",
+            "读者在 Word/WPS 中看到的结果为准",
+            "合并单元格",
+            "多个段落的单元格",
+            "保存后重新打开",
             "不用空格推齐",
             "w:ind firstLine=0",
             "firstLineChars=0",
             "相邻两张表格之间必须插入一个空段落",
             "document-skills:docx",
-            "domain-plugin-v2/skills/paper-writing",
+            "math-modeling-plugin-v2/skills/paper-writing",
             "python-docx",
         ):
             self.assertIn(token, main)
@@ -153,7 +160,7 @@ class BehaviorContractTests(unittest.TestCase):
     def test_s7_obsidian_word_generation_and_compound_terms_have_a_language_gate(self) -> None:
         text = combined()
         for token in (
-            "生成或修改简体中文 Obsidian 笔记或 Word 正文",
+            "已有简体中文文件、段落或对话",
             "专业语义草稿 → renhua → 格式 Skill",
             "普通复合词",
             "对象归属",
@@ -161,6 +168,9 @@ class BehaviorContractTests(unittest.TestCase):
             "用于比较的基准方法（baseline）",
             "输入来自哪里",
             "输出属于谁",
+            "框架不自动下放到组件",
+            "来源与承诺可追溯",
+            "多文档功能去重",
         ):
             self.assertIn(token, text)
 

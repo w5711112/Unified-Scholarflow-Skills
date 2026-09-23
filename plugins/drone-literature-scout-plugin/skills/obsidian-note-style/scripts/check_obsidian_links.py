@@ -15,7 +15,7 @@ DEFAULT_EXCLUDED_DIR_NAMES = {
     ".git",
     ".obsidian",
     ".trash",
-    "示例研究工作区",
+    "<NOTE_VAULT_NAME>",
     "无人机方向分析kimi",
 }
 WIKI_LINK_RE = re.compile(r"(?P<embed>!)?\[\[(?P<body>[^\]\n]+)\]\]")

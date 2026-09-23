@@ -1,9 +1,17 @@
 {
   "schema_version": 1,
+  "interface_version": "1.1.0",
+  "evidence_objects": [
+    "IDENTITY_EVIDENCE",
+    "VERSION_RECONCILIATION",
+    "PREWRITE_LIBRARY_SNAPSHOT",
+    "POSTWRITE_RECONCILIATION"
+  ],
   "legacy_sha256": "c0049694400d2369ec38658670c3ddb085aede2e92862916fb37f1f344ba4e8d",
   "compact_fixture_sha256": "1ac1e3cb276199420511980ba712e791660b5dc2f4ff157dad3aaad22ca37713",
   "strategy": "semantic-deduplication-with-explicit-legacy-block-mapping",
   "runtime_loaded": false,
+  "maintenance_note": "2026-09-21 user-approved lightweight deduplication: current SKILL and direct references override historical block mappings. Reuse write receipts; refresh only changed evidence and actual write boundaries. Guides expand SKILL plus references; they are not byte-equal to the entrypoint. Native merge preserves child keys and reconciles current Obsidian references. No second parent for version takeover.",
   "rewritten_blocks": [
     {
       "legacy_block_sha256": "6393d8657179c36d740ccf797509345ea4b052aaedd56f930cf2249bd32c2fa1",
@@ -26,7 +34,7 @@
       "target_file": "references/zotero-write-safety-contract.md",
       "target_anchor": "全库唯一性快照",
       "hardness": "mandatory fresh full-library pagination",
-      "conditions": "batch start, search or rerun, formal-source completion and immediately before saveItems",
+      "conditions": "initial inventory, fresh locked saveItems boundary, actual writes and changed external state; no extra refresh merely for search or source completion",
       "failure_action": "stop; cached or filtered results cannot authorize a write"
     },
     {
@@ -65,7 +73,7 @@
       "legacy_block_sha256": "8b01356bf29fd3cbac387249d996f08c786c612b87dda245d17357c8b90ae975",
       "target_file": "references/zotero-write-safety-contract.md",
       "target_anchor": "全库唯一性快照",
-      "hardness": "mandatory refresh on every new search and rerun",
+      "hardness": "mandatory refresh at real write boundaries or changed external state; reuse unchanged evidence",
       "conditions": "new-paper or repeat execution",
       "failure_action": "reject old manifest, cache, search box or single-item assumptions"
     },
@@ -73,8 +81,8 @@
       "legacy_block_sha256": "85ed8ebbe8ebcd4eb0a0d7cd88705738a00461abf2250b08d7eab28b7b469871",
       "target_file": "references/zotero-write-safety-contract.md",
       "target_anchor": "全库唯一性快照",
-      "hardness": "mandatory formal-source refresh, merge review, formal-version preference and child reconciliation",
-      "conditions": "after Crossref/publisher/proceedings acquisition and before saveItems",
+      "hardness": "mandatory verified formal-source identity, merge review, formal-version preference and child reconciliation",
+      "conditions": "before saveItems; source retrieval alone does not force another full-library read",
       "failure_action": "block new writes and backlinks until one verified parent and real PDF child remain"
     },
     {

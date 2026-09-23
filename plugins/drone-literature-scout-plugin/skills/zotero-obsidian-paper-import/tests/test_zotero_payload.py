@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(ROOT / "skill-with-plugin" / "drone-literature-scout-plugin" / "skills" / "zotero-obsidian-paper-import" / "scripts"))
@@ -10,10 +11,22 @@ from paper_import import (
     find_existing_parent_keys,
     group_duplicate_parents,
     classify_post_write_matches,
+    zotero_delete_item,
 )
 
 
 class ZoteroPayloadTests(unittest.TestCase):
+    def test_local_api_delete_fails_closed_without_http_request(self):
+        with patch(
+            "paper_import.urllib.request.urlopen",
+            side_effect=AssertionError("local API delete is unsupported"),
+        ) as urlopen:
+            status, body = zotero_delete_item("NEWLY_CREATED")
+
+        self.assertEqual(status, 501)
+        self.assertIn(b"manual Zotero UI review", body)
+        urlopen.assert_not_called()
+
     def test_payload_has_metadata_and_stable_connector_id(self):
         paper = {"number": 12, "title": "EGO-Planner", "doi": "10.1109/lra.2020.3047728", "source_url": "https://ieeexplore.ieee.org/document/9309343", "authors": [{"firstName": "Xin", "lastName": "Zhou"}]}
         payload = build_connector_payload(paper, "session-12", "paper-12")

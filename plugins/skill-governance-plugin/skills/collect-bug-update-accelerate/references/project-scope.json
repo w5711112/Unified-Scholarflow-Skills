@@ -1,14 +1,21 @@
 {
   "schema_version": 1,
   "approved_project_roots": [
-    "C:/path/to/authorized/project"
+    "C:/Users/YOURNAME\\Documents\\Obsidian Vault",
+    "D:/path/to/share\\AIM\\<YOUR_TOPIC>",
+    "C:/path/to/your/vault",
+    "D:/path/to/share\\AIM\\<YOUR_TOPIC>\\kimi调整",
+    "C:/Users/YOURNAME\\Documents\\Obsidian Vault\\<NOTE_VAULT_NAME>"
   ],
   "incident_provider": {
     "component_id": "global.collect-bug-update-accelerate",
     "script_name": "incident_registry.py"
   },
-  "public_registry_path": "C:/path/to/public/incident-registry.json",
+  "public_registry_path": "C:/path/to/your/vault\\skill-with-plugin\\运行数据\\collect-bug-update-accelerate\\incident-registry.json",
   "local_registry_relative_path": ".codex-runtime/collect-bug-update-accelerate/incident-registry.json",
+  "forbidden_paths": [
+    "D:/path/to/share\\AIM\\<YOUR_TOPIC>\\中标后文件\\禁止读取与编辑的归档资料"
+  ],
   "exclusions": [
     "ordinary-chatgpt-chats",
     "projectless-tasks",

@@ -293,9 +293,9 @@ var ZoteroNativeAnnotationBridge = (() => {
 	}
 
 	function profileSecret() {
-		const profileMaterial = requireSecurity().getProfileSecret();
-		assertString(profileMaterial, "profile secret", 64, 64, DIGEST_PATTERN);
-		return profileMaterial;
+		const secret = requireSecurity().getProfileSecret();
+		assertString(secret, "profile secret", 64, 64, DIGEST_PATTERN);
+		return secret;
 	}
 
 	function derivedKey(label) {
@@ -468,11 +468,11 @@ var ZoteroNativeAnnotationBridge = (() => {
 	}
 
 	function getOrCreateProfileSecret() {
-		let profileMaterial = Zotero.Prefs.get(SECRET_PREF);
-		if (typeof profileMaterial === "string" && DIGEST_PATTERN.test(profileMaterial)) return profileMaterial;
-		profileMaterial = randomProfileSecret();
-		Zotero.Prefs.set(SECRET_PREF, profileMaterial);
-		return profileMaterial;
+		let secret = Zotero.Prefs.get(SECRET_PREF);
+		if (typeof secret === "string" && DIGEST_PATTERN.test(secret)) return secret;
+		secret = randomProfileSecret();
+		Zotero.Prefs.set(SECRET_PREF, secret);
+		return secret;
 	}
 
 	async function writePrivateAuthenticationToken() {
@@ -489,9 +489,9 @@ var ZoteroNativeAnnotationBridge = (() => {
 	}
 
 	async function initializeZoteroRuntime(version) {
-		const profileMaterial = getOrCreateProfileSecret();
+		const secret = getOrCreateProfileSecret();
 		configureSecurity({
-			getProfileSecret() { return profileMaterial; },
+			getProfileSecret() { return secret; },
 			sha256Hex: zoteroSHA256Hex,
 			hmacSha256Hex: zoteroHMACSHA256Hex,
 			now() { return Math.floor(Date.now() / 1000); },
@@ -552,7 +552,8 @@ var ZoteroNativeAnnotationBridge = (() => {
 	}
 
 	function requestAuthenticationMessage(method, pathname, timestamp, body) {
-		if (method !== "POST" || ![PREFLIGHT_PATH, APPLY_PATH].includes(pathname)) {
+		if (method !== "POST" || ![PREFLIGHT_PATH, APPLY_PATH,
+			"/zotero-local-bridge/v1/merge/preflight", "/zotero-local-bridge/v1/merge/apply"].includes(pathname)) {
 			throw protocolError(400, "invalid_auth_scope", "authentication scope is invalid");
 		}
 		assertInteger(timestamp, "authentication timestamp", 0);
@@ -1135,6 +1136,9 @@ var ZoteroNativeAnnotationBridge = (() => {
 			security = null;
 		},
 		canonicalJSONStringify,
+		digestCanonical,
+		validateAuthenticatedJSONRequest,
+		receiptPayloadFromReceipt,
 		configureSecurity,
 		configureRuntime,
 		registerEndpoints,

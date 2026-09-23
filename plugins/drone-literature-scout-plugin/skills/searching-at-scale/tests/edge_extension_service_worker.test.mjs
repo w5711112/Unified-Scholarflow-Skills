@@ -704,7 +704,7 @@ const INVALID_NUMBERED_RESPONSES = [
   ['wrong page', 'https://search.jd.com/Search?keyword=%E5%B0%8F%E7%B1%B315&page=5'],
   ['duplicate keyword', 'https://search.jd.com/Search?keyword=%E5%B0%8F%E7%B1%B315&keyword=Redmi&page=3'],
   ['duplicate page', 'https://search.jd.com/Search?keyword=%E5%B0%8F%E7%B1%B315&page=3&page=5'],
-  ['userinfo', 'https://example:password@localhost/Search?keyword=%E5%B0%8F%E7%B1%B315&page=3'],
+  ['userinfo', 'https://user:pass@search.jd.com/Search?keyword=%E5%B0%8F%E7%B1%B315&page=3'],
   ['fragment', 'https://search.jd.com/Search?keyword=%E5%B0%8F%E7%B1%B315&page=3#next'],
 ];
 

@@ -17,3 +17,13 @@ Directory traversal stops at every reparse point and at every directory that can
 Verify the before and after workspace byte totals, keep residual risks explicit, and rescan after execution. Purging quarantine is a distinct irreversible operation requiring exactly `PURGE:<sha256(resolved quarantine path)>`; an `APPROVE:` token never authorizes purge. Purge accepts only a tool-created live quarantine whose manifest and entries remain complete and whose boundary is outside its scanned root; it never deletes a protected, unknown, or caller-selected directory.
 
 When the collect-bug-update-accelerate guard applies, do not scan the quarantine as part of the original root. Record real cleanup failures through its required capture route before changing routes, and preserve the incident registry as protected.
+
+## Latest validated build and scheduled retirement
+
+Keep the latest accepted result and its complete build dependency closure: builder, configuration, templates/assets, required inputs and reproducibility evidence. A larger version number, newer mtime or generated output alone does not establish acceptance. A failed v1.5 does not retire accepted v1.4; an older builder still used by the current version remains protected. Tests and fixtures are dependencies until proven otherwise.
+
+Protect every academic-native-*ppt* Skill variant and `_ppt-shared-assets`; register these names in every scheduled policy. Unknown user files, active task files, candidate-pool decisions and source evidence are protected. Scheduled scans are limited to explicitly registered roots and producer-owned artifact manifests, never a drive or user-home sweep.
+
+For an approved recurring policy, the producing owner may nominate exact superseded artifact paths with content hashes, a verified successor and a retained dependency list. Hygiene validates those facts and produces the same exact proposal; incomplete evidence stays proposal-only. First run is dry-run. Semantic quarantine and purge continue to require the existing exact tokens: recurring scheduling alone never fabricates approval. A user-approved policy may only automate actions whose exact scope and current evidence are represented in that approval; new paths or changed contents require review.
+
+Suggested retention is seven days for superseded reproducible artifacts and fourteen days for one recovery snapshot outside the active/synchronized root, subject to the user's adopted policy. Age never overrides dependency, acceptance or protection. Until an executable, tested retention authorization is present, scheduled maintenance performs mechanical cleanup and proposes semantic retirement without purging it. Report this boundary rather than claiming historical scripts were automatically removed.

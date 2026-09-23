@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import subprocess
 import unittest
+from unittest.mock import patch
 
 from _test_paths import ensure_skill_root_on_path
 
@@ -126,6 +127,13 @@ class FakeProcess:
 
 
 class EdgeMarketplaceQueryTests(unittest.TestCase):
+    def setUp(self):
+        # Default-route cases must not inherit another test's profile override.
+        environment = patch.dict(os.environ)
+        environment.start()
+        self.addCleanup(environment.stop)
+        os.environ.pop(SAT_EDGE_PIPE_PATH_ENV, None)
+
     def test_worker_failure_accepts_standard_exception_metadata(self):
         failure = EdgeWorkerFailure("edge_worker_input_invalid", False, "invalid")
 

@@ -41,7 +41,7 @@ class UrlDedupeTests(unittest.TestCase):
     def test_userinfo_unicode_and_malformed_hosts_fail_closed(self):
         """Lossy authority transformations must not create false duplicates."""
         for raw_url in (
-            "https://<YOUR_EMAIL>/item",
+            "https://alice@example.com/item",
             "https://faß.de/item",
             "https://exa mple.com/item",
             "https://example.com%2F.attacker/item",

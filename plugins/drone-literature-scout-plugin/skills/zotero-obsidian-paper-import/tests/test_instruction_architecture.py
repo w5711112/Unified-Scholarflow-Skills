@@ -4,6 +4,7 @@ import hashlib
 import json
 import re
 import unittest
+import os
 from pathlib import Path
 
 
@@ -34,6 +35,19 @@ def normalized_blocks(text: str) -> list[str]:
 
 
 class InstructionArchitectureTests(unittest.TestCase):
+    def test_architecture_manifest_tracks_version_reconciliation_interface(self):
+        manifest = json.loads(
+            (Path(os.environ.get('PAPER_IMPORT_TEST_PLUGIN_ROOT', SKILL_ROOT.parents[1])) / "architecture-manifest.json").read_text(
+                encoding="utf-8"
+            )
+        )["skills"]["zotero-obsidian-paper-import"]
+        self.assertEqual("1.1.0", manifest["interface_version"])
+        self.assertIn("VERSION_RECONCILIATION", manifest["evidence_objects"])
+        self.assertEqual(
+            1,
+            manifest["numeric_guards"]["version_reconciliation_schema_version"],
+        )
+
     def test_entrypoint_is_a_small_router_with_three_direct_references(self):
         current = ENTRY.read_bytes()
         self.assertLessEqual(len(current), 22000)
@@ -101,8 +115,10 @@ class InstructionArchitectureTests(unittest.TestCase):
             "POSTWRITE_RECONCILIATION",
         ):
             self.assertIn(evidence_id, text)
-        self.assertIn("达到新的强制取证边界时必须刷新", text)
-        self.assertIn("不得跨边界复用旧证据", text)
+        self.assertIn("`saveItems` 紧前由唯一写入层在进程锁内刷新并查重", text)
+        self.assertIn("附件上传后生成一次最终对账供状态与回链共用", text)
+        self.assertIn("使旧事实失效时刷新受影响证据", text)
+        self.assertIn("搜索开始、来源抓取完成、进入新章节不单独触发全库重读", text)
 
 
 if __name__ == "__main__":

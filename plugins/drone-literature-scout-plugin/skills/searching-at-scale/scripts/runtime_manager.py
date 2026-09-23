@@ -200,7 +200,7 @@ class RuntimeManager:
 
             settings_dir = self._task_temp_dir / "settings"
             settings_dir.mkdir(parents=True, exist_ok=False)
-            <REDACTED_SECRET>(32)
+            secret = secrets.token_urlsafe(32)
             (settings_dir / "settings.yml").write_text(
                 render_searxng_settings(secret, engines),
                 encoding="utf-8",

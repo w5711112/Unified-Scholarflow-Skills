@@ -1,0 +1,705 @@
+"""Dependency-free sitemap fetching, parsing, discovery, and readiness CLI."""
+
+from __future__ import annotations
+
+import base64
+from collections.abc import Callable, Iterator, Mapping
+from dataclasses import dataclass
+import gzip
+import io
+import json
+import re
+import ssl
+import sys
+from time import perf_counter
+from urllib.error import HTTPError, URLError
+from urllib.parse import urljoin, urlsplit, urlunsplit
+from urllib.request import Request, build_opener
+import xml.etree.ElementTree as ElementTree
+import zlib
+
+
+DEFAULT_TIMEOUT_SECONDS = 15.0
+DEFAULT_MAX_DOCUMENT_BYTES = 16 * 1024 * 1024
+DEFAULT_MAX_DEPTH = 8
+READINESS_STATES = {
+    "bulk_unchecked",
+    "bulk_ready",
+    "bulk_degraded",
+    "bulk_unavailable",
+}
+CONVENTIONAL_SITEMAPS = (
+    "/sitemap.xml",
+    "/sitemap_index.xml",
+    "/sitemap-index.xml",
+)
+
+
+def _validate_max_document_bytes(max_document_bytes: int) -> None:
+    """Reject unsafe byte limits before they can reach a read operation."""
+    if (
+        isinstance(max_document_bytes, bool)
+        or not isinstance(max_document_bytes, int)
+        or max_document_bytes <= 0
+    ):
+        raise ValueError("max_document_bytes must be greater than zero")
+
+
+@dataclass(frozen=True)
+class ParsedSitemap:
+    """URLs grouped by their role in one sitemap XML document."""
+
+    kind: str
+    child_sitemaps: tuple[str, ...]
+    primary_urls: tuple[str, ...]
+    media_urls: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class FetchOutcome:
+    """One bounded HTTP fetch result, including a stable failure category."""
+
+    url: str
+    status: int | None
+    content_type: str
+    content_encoding: str
+    payload: bytes
+    elapsed_seconds: float
+    error_category: str | None
+
+
+@dataclass(frozen=True)
+class DiscoveryConfig:
+    """Inputs and safety limits for a sitemap discovery run."""
+
+    seeds: tuple[str, ...] = ()
+    explicit_sitemaps: tuple[str, ...] = ()
+    scope_mode: str = "market"
+    timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
+    max_document_bytes: int = DEFAULT_MAX_DOCUMENT_BYTES
+    max_depth: int = DEFAULT_MAX_DEPTH
+    product_path_hints: tuple[str, ...] = ("/products/", "/product/")
+
+    def __post_init__(self) -> None:
+        _validate_max_document_bytes(self.max_document_bytes)
+
+
+Fetcher = Callable[..., FetchOutcome]
+
+
+def fetch_url(
+    url: str,
+    *,
+    timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
+    max_document_bytes: int = DEFAULT_MAX_DOCUMENT_BYTES,
+) -> FetchOutcome:
+    """Fetch one HTTP(S) document through urllib's proxy-aware verified TLS path."""
+    _validate_max_document_bytes(max_document_bytes)
+    started = perf_counter()
+    if _http_url(url) is None:
+        return FetchOutcome(
+            url=url,
+            status=None,
+            content_type="",
+            content_encoding="",
+            payload=b"",
+            elapsed_seconds=perf_counter() - started,
+            error_category="transport_error",
+        )
+
+    try:
+        opener = build_opener()
+        request = Request(url, headers={"User-Agent": "sitemap-discovery/1.0"})
+        with opener.open(request, timeout=timeout_seconds) as response:
+            payload = response.read(max_document_bytes + 1)
+            status = response.getcode()
+            content_type = response.headers.get("Content-Type", "")
+            content_encoding = response.headers.get("Content-Encoding", "")
+        if len(payload) > max_document_bytes:
+            return FetchOutcome(
+                url=url,
+                status=status,
+                content_type=content_type,
+                content_encoding=content_encoding,
+                payload=b"",
+                elapsed_seconds=perf_counter() - started,
+                error_category="document_too_large",
+            )
+        return FetchOutcome(
+            url=url,
+            status=status,
+            content_type=content_type,
+            content_encoding=content_encoding,
+            payload=payload,
+            elapsed_seconds=perf_counter() - started,
+            error_category=None,
+        )
+    except HTTPError as error:
+        category = {
+            401: "access_restricted",
+            403: "access_restricted",
+            404: "not_found",
+            429: "rate_limited",
+        }.get(error.code, "transport_error")
+        return FetchOutcome(
+            url=url,
+            status=error.code,
+            content_type=error.headers.get("Content-Type", "") if error.headers else "",
+            content_encoding=(
+                error.headers.get("Content-Encoding", "") if error.headers else ""
+            ),
+            payload=b"",
+            elapsed_seconds=perf_counter() - started,
+            error_category=category,
+        )
+    except TimeoutError:
+        category = "timeout"
+    except URLError as error:
+        category = "timeout" if isinstance(error.reason, TimeoutError) else "transport_error"
+    except (ssl.SSLError, ValueError, OSError):
+        category = "transport_error"
+
+    return FetchOutcome(
+        url=url,
+        status=None,
+        content_type="",
+        content_encoding="",
+        payload=b"",
+        elapsed_seconds=perf_counter() - started,
+        error_category=category,
+    )
+
+
+def decode_sitemap_payload(
+    payload: bytes,
+    *,
+    content_encoding: str,
+    source_url: str,
+    max_document_bytes: int | None = None,
+) -> bytes:
+    """Decode a sitemap, stopping gzip expansion one byte beyond an optional limit."""
+    if max_document_bytes is not None:
+        _validate_max_document_bytes(max_document_bytes)
+    encodings = {value.strip().lower() for value in content_encoding.split(",")}
+    is_gzip = "gzip" in encodings or urlsplit(source_url).path.lower().endswith(".gz")
+    if not is_gzip:
+        if max_document_bytes is not None and len(payload) > max_document_bytes:
+            raise _DocumentTooLarge("document_too_large")
+        return payload
+    with gzip.GzipFile(fileobj=io.BytesIO(payload), mode="rb") as stream:
+        decoded = stream.read(
+            -1 if max_document_bytes is None else max_document_bytes + 1
+        )
+    if max_document_bytes is not None and len(decoded) > max_document_bytes:
+        raise _DocumentTooLarge("document_too_large")
+    return decoded
+
+
+def parse_sitemap_xml(payload: bytes, *, source_url: str) -> ParsedSitemap:
+    """Parse a sitemap index or URL set, retaining only HTTP(S) URL values."""
+    del source_url
+    root = ElementTree.fromstring(payload)
+    root_name = _local_name(root.tag)
+    if root_name == "sitemapindex":
+        return ParsedSitemap(
+            kind="index",
+            child_sitemaps=tuple(
+                url
+                for sitemap in root
+                if _local_name(sitemap.tag) == "sitemap"
+                for child in sitemap
+                if _local_name(child.tag) == "loc"
+                for url in (_http_url(child.text),)
+                if url is not None
+            ),
+            primary_urls=(),
+            media_urls=(),
+        )
+    if root_name != "urlset":
+        raise ValueError("unsupported sitemap root element")
+
+    primary_urls: list[str] = []
+    media_urls: list[str] = []
+    for url_entry in root:
+        if _local_name(url_entry.tag) != "url":
+            continue
+        for child in url_entry:
+            if _local_name(child.tag) == "loc":
+                primary = _http_url(child.text)
+                if primary is not None:
+                    primary_urls.append(primary)
+                continue
+            for nested in child.iter():
+                if nested is child or _local_name(nested.tag) != "loc":
+                    continue
+                media = _http_url(nested.text)
+                if media is not None:
+                    media_urls.append(media)
+    return ParsedSitemap(
+        kind="urlset",
+        child_sitemaps=(),
+        primary_urls=tuple(primary_urls),
+        media_urls=tuple(media_urls),
+    )
+
+
+def _local_name(tag: str) -> str:
+    """Strip a namespace from an ElementTree tag."""
+    return tag.rsplit("}", 1)[-1]
+
+
+def _http_url(value: str | None) -> str | None:
+    """Normalize surrounding XML whitespace and reject non-web URL values."""
+    if value is None:
+        return None
+    candidate = value.strip()
+    parsed = urlsplit(candidate)
+    if parsed.scheme.lower() not in {"http", "https"} or not parsed.netloc:
+        return None
+    return candidate
+
+
+def classify_bulk_readiness(summary: Mapping[str, object]) -> str:
+    """Classify whether the observed backend can support bulk discovery."""
+    if summary.get("source_kind") == "search":
+        return "bulk_unavailable"
+    if int(summary.get("valid_sitemaps", 0)) == 0:
+        return "bulk_unavailable"
+    if summary.get("scope_mode") == "site" and int(summary.get("primary_urls", 0)) > 0:
+        return "bulk_ready"
+    if float(summary.get("raw_url_observations_per_second", 0.0)) >= 50.0:
+        return "bulk_ready"
+    if (
+        int(summary.get("exhaustive_seed_count", 0)) >= 2
+        and int(summary.get("primary_urls", 0)) > 0
+    ):
+        return "bulk_ready"
+    return "bulk_degraded"
+
+
+def iter_discovery_events(
+    config: DiscoveryConfig, *, fetcher: Fetcher = fetch_url
+) -> Iterator[dict[str, object]]:
+    """Yield a bounded recursive sitemap discovery run as JSON-compatible events."""
+    _validate_max_document_bytes(config.max_document_bytes)
+    yield {
+        "type": "backend",
+        "backend": "sitemap",
+        "source_kind": "sitemap",
+        "bulk_readiness_state": "bulk_unchecked",
+    }
+
+    counters = {
+        "sitemap_candidates": 0,
+        "sitemap_documents_fetched": 0,
+        "valid_sitemaps": 0,
+        "raw_url_observations": 0,
+        "primary_urls": 0,
+        "media_url_observations": 0,
+        "product_page_candidates": 0,
+    }
+    elapsed_seconds = 0.0
+    error_category_counts: dict[str, int] = {}
+    unresolved_bulk_backends: list[str] = []
+    exhaustive_origins: set[str] = set()
+    sitemap_completion: dict[str, bool | None] = {}
+
+    seed_origins: list[str] = []
+    seen_origins: set[str] = set()
+    for seed in config.seeds:
+        origin = _origin(seed)
+        if origin is not None and origin not in seen_origins:
+            seen_origins.add(origin)
+            seed_origins.append(origin)
+
+    candidates: list[tuple[str, int, set[str]]] = []
+    candidate_indexes: dict[str, int] = {}
+
+    def add_candidate(url: str, depth: int, origins: frozenset[str]) -> None:
+        normalized = _normalize_http_url(url)
+        if normalized is None:
+            return
+        existing_index = candidate_indexes.get(normalized)
+        if existing_index is not None:
+            candidates[existing_index][2].update(origins)
+            return
+        candidate_indexes[normalized] = len(candidates)
+        candidates.append((url, depth, set(origins)))
+        counters["sitemap_candidates"] += 1
+
+    def record_error(category: str) -> None:
+        error_category_counts[category] = error_category_counts.get(category, 0) + 1
+
+    for origin in seed_origins:
+        robots_url = f"{origin}/robots.txt"
+        outcome = fetcher(
+            robots_url,
+            timeout_seconds=config.timeout_seconds,
+            max_document_bytes=config.max_document_bytes,
+        )
+        elapsed_seconds += max(0.0, outcome.elapsed_seconds)
+        if outcome.error_category is not None:
+            record_error(outcome.error_category)
+            yield _error_event(robots_url, outcome.error_category, route_kind="robots")
+            continue
+        for declared in _robots_sitemap_urls(outcome.payload, robots_url=robots_url):
+            add_candidate(declared, 0, frozenset((origin,)))
+
+    for sitemap_url in config.explicit_sitemaps:
+        explicit_origin = _origin(sitemap_url)
+        origins = frozenset(
+            origin for origin in seed_origins if origin == explicit_origin
+        )
+        add_candidate(sitemap_url, 0, origins)
+
+    for origin in seed_origins:
+        for path in CONVENTIONAL_SITEMAPS:
+            add_candidate(f"{origin}{path}", 0, frozenset((origin,)))
+
+    def visit_sitemap(
+        sitemap_url: str, depth: int, origins: frozenset[str]
+    ) -> Iterator[dict[str, object]]:
+        nonlocal elapsed_seconds
+        normalized = _normalize_http_url(sitemap_url)
+        if normalized is None:
+            return False
+        if normalized in sitemap_completion:
+            completion = sitemap_completion[normalized]
+            return True if completion is None else completion
+        if depth > config.max_depth:
+            category = "max_depth_exceeded"
+            record_error(category)
+            yield _error_event(sitemap_url, category, route_kind="sitemap")
+            return False
+        sitemap_completion[normalized] = None
+
+        outcome = fetcher(
+            sitemap_url,
+            timeout_seconds=config.timeout_seconds,
+            max_document_bytes=config.max_document_bytes,
+        )
+        elapsed_seconds += max(0.0, outcome.elapsed_seconds)
+        if outcome.error_category is not None:
+            record_error(outcome.error_category)
+            unresolved_bulk_backends.append(sitemap_url)
+            yield _error_event(
+                sitemap_url,
+                outcome.error_category,
+                route_kind="sitemap",
+                status=outcome.status,
+            )
+            sitemap_completion[normalized] = False
+            return False
+
+        counters["sitemap_documents_fetched"] += 1
+        try:
+            decoded = decode_sitemap_payload(
+                outcome.payload,
+                content_encoding=outcome.content_encoding,
+                source_url=sitemap_url,
+                max_document_bytes=config.max_document_bytes,
+            )
+            parsed = parse_sitemap_xml(decoded, source_url=sitemap_url)
+        except _DocumentTooLarge:
+            category = "document_too_large"
+            record_error(category)
+            unresolved_bulk_backends.append(sitemap_url)
+            yield _error_event(sitemap_url, category, route_kind="sitemap")
+            sitemap_completion[normalized] = False
+            return False
+        except (
+            ElementTree.ParseError,
+            ValueError,
+            gzip.BadGzipFile,
+            EOFError,
+            zlib.error,
+        ):
+            category = "invalid_xml"
+            record_error(category)
+            unresolved_bulk_backends.append(sitemap_url)
+            yield _error_event(sitemap_url, category, route_kind="sitemap")
+            sitemap_completion[normalized] = False
+            return False
+
+        counters["valid_sitemaps"] += 1
+        yield {
+            "type": "sitemap",
+            "url": sitemap_url,
+            "depth": depth,
+            "kind": parsed.kind,
+            "status": outcome.status,
+        }
+
+        if parsed.kind == "index":
+            complete = True
+            for child_url in sorted(parsed.child_sitemaps, key=_shard_priority):
+                child_complete = yield from visit_sitemap(
+                    child_url, depth + 1, origins
+                )
+                complete = complete and child_complete
+            sitemap_completion[normalized] = complete
+            return complete
+
+        for primary_url in parsed.primary_urls:
+            counters["raw_url_observations"] += 1
+            counters["primary_urls"] += 1
+            product_evidence = _product_candidate_evidence(
+                primary_url,
+                sitemap_url=sitemap_url,
+                product_path_hints=config.product_path_hints,
+            )
+            is_product = bool(product_evidence)
+            if is_product:
+                counters["product_page_candidates"] += 1
+            yield {
+                "type": "url",
+                "url": primary_url,
+                "url_kind": "primary",
+                "discovery_channel": "sitemap",
+                "product_page_candidate": is_product,
+                "product_candidate_evidence": product_evidence,
+                "sitemap_url": sitemap_url,
+            }
+        for media_url in parsed.media_urls:
+            counters["raw_url_observations"] += 1
+            counters["media_url_observations"] += 1
+            yield {
+                "type": "url",
+                "url": media_url,
+                "url_kind": "media",
+                "discovery_channel": "sitemap",
+                "product_page_candidate": False,
+                "product_candidate_evidence": [],
+                "sitemap_url": sitemap_url,
+            }
+        sitemap_completion[normalized] = True
+        return True
+
+    for sitemap_url, depth, origins in candidates:
+        root_complete = yield from visit_sitemap(
+            sitemap_url, depth, frozenset(origins)
+        )
+        if root_complete:
+            exhaustive_origins.update(origins)
+
+    raw_rate = _rate(counters["raw_url_observations"], elapsed_seconds)
+    summary: dict[str, object] = {
+        "type": "summary",
+        "source_kind": "sitemap",
+        "scope_mode": config.scope_mode,
+        **counters,
+        "exhaustive_seed_count": len(exhaustive_origins),
+        "pure_discovery_seconds": elapsed_seconds,
+        "raw_url_observations_per_second": raw_rate,
+        "primary_urls_per_second": _rate(counters["primary_urls"], elapsed_seconds),
+        "product_candidates_per_second": _rate(
+            counters["product_page_candidates"], elapsed_seconds
+        ),
+        "error_category_counts": error_category_counts,
+        "unresolved_bulk_backends": unresolved_bulk_backends,
+    }
+    summary["bulk_readiness_state"] = classify_bulk_readiness(summary)
+    yield summary
+
+
+class _DocumentTooLarge(ValueError):
+    """Internal signal for an expanded gzip payload exceeding the configured bound."""
+
+
+def _origin(url: str) -> str | None:
+    candidate = _http_url(url)
+    if candidate is None:
+        return None
+    parsed = urlsplit(candidate)
+    return urlunsplit((parsed.scheme.lower(), parsed.netloc.lower(), "", "", ""))
+
+
+def _normalize_http_url(url: str) -> str | None:
+    candidate = _http_url(url)
+    if candidate is None:
+        return None
+    parsed = urlsplit(candidate)
+    try:
+        port = parsed.port
+    except ValueError:
+        return None
+    host = (parsed.hostname or "").lower()
+    if not host:
+        return None
+    host_display = f"[{host}]" if ":" in host else host
+    if port is not None and not (
+        (parsed.scheme.lower() == "http" and port == 80)
+        or (parsed.scheme.lower() == "https" and port == 443)
+    ):
+        host_display = f"{host_display}:{port}"
+    path = parsed.path or "/"
+    return urlunsplit(
+        (parsed.scheme.lower(), host_display, path, parsed.query, "")
+    )
+
+
+def _robots_sitemap_urls(payload: bytes, *, robots_url: str) -> tuple[str, ...]:
+    urls: list[str] = []
+    for line in payload.decode("utf-8", errors="replace").splitlines():
+        directive, separator, value = line.partition(":")
+        if not separator or directive.strip().lower() != "sitemap":
+            continue
+        candidate = urljoin(robots_url, value.split("#", 1)[0].strip())
+        if _http_url(candidate) is not None:
+            urls.append(candidate)
+    return tuple(urls)
+
+
+def _shard_priority(url: str) -> tuple[int, str]:
+    lowered = url.lower()
+    if _is_product_sitemap(url):
+        rank = 0
+    elif "collection" in lowered:
+        rank = 1
+    elif "page" in lowered:
+        rank = 2
+    else:
+        rank = 3
+    return rank, lowered
+
+
+def _is_product_url(url: str, product_path_hints: tuple[str, ...]) -> bool:
+    path = urlsplit(url).path.casefold()
+    return any(hint.casefold() in path for hint in product_path_hints if hint)
+
+
+def _is_product_sitemap(url: str) -> bool:
+    path_tokens = {
+        token
+        for token in re.split(r"[^a-z0-9]+", urlsplit(url).path.casefold())
+        if token
+    }
+    return bool(path_tokens & {"product", "products"})
+
+
+def _product_candidate_evidence(
+    url: str,
+    *,
+    sitemap_url: str,
+    product_path_hints: tuple[str, ...],
+) -> list[str]:
+    evidence: list[str] = []
+    if _is_product_sitemap(sitemap_url):
+        evidence.append("sitemap_product_shard")
+    if _is_product_url(url, product_path_hints):
+        evidence.append("url_path_hint")
+    return evidence
+
+
+def _rate(count: int, elapsed_seconds: float) -> float:
+    return count / elapsed_seconds if elapsed_seconds > 0.0 else 0.0
+
+
+def _error_event(
+    url: str,
+    category: str,
+    *,
+    route_kind: str,
+    status: int | None = None,
+) -> dict[str, object]:
+    return {
+        "type": "error",
+        "url": url,
+        "route_kind": route_kind,
+        "status": status,
+        "error_category": category,
+    }
+
+
+def _config_from_json(value: Mapping[str, object]) -> DiscoveryConfig:
+    return DiscoveryConfig(
+        seeds=tuple(str(item) for item in value.get("seeds", ())),
+        explicit_sitemaps=tuple(
+            str(item) for item in value.get("explicit_sitemaps", ())
+        ),
+        scope_mode=str(value.get("scope_mode", "market")),
+        timeout_seconds=float(value.get("timeout_seconds", DEFAULT_TIMEOUT_SECONDS)),
+        max_document_bytes=int(
+            value.get("max_document_bytes", DEFAULT_MAX_DOCUMENT_BYTES)
+        ),
+        max_depth=int(value.get("max_depth", DEFAULT_MAX_DEPTH)),
+        product_path_hints=tuple(
+            str(item)
+            for item in value.get("product_path_hints", ("/products/", "/product/"))
+        ),
+    )
+
+
+def _fixture_fetcher(value: Mapping[str, object]) -> Fetcher | None:
+    fixtures = value.get("fixture_fetches")
+    if not isinstance(fixtures, Mapping):
+        return None
+    outcomes: dict[str, FetchOutcome] = {}
+    for url, raw_outcome in fixtures.items():
+        if not isinstance(url, str) or not isinstance(raw_outcome, Mapping):
+            raise ValueError("fixture_fetches must map URL strings to JSON objects")
+        if "payload_base64" in raw_outcome:
+            payload = base64.b64decode(str(raw_outcome["payload_base64"]), validate=True)
+        else:
+            payload = str(raw_outcome.get("payload", "")).encode("utf-8")
+        status_value = raw_outcome.get("status")
+        error_value = raw_outcome.get("error_category")
+        outcomes[url] = FetchOutcome(
+            url=url,
+            status=int(status_value) if status_value is not None else None,
+            content_type=str(raw_outcome.get("content_type", "")),
+            content_encoding=str(raw_outcome.get("content_encoding", "")),
+            payload=payload,
+            elapsed_seconds=float(raw_outcome.get("elapsed_seconds", 0.0)),
+            error_category=str(error_value) if error_value is not None else None,
+        )
+
+    def fetch_fixture(
+        url: str, *, timeout_seconds: float, max_document_bytes: int
+    ) -> FetchOutcome:
+        del timeout_seconds
+        outcome = outcomes.get(url)
+        if outcome is None:
+            return FetchOutcome(
+                url=url,
+                status=404,
+                content_type="text/plain",
+                content_encoding="",
+                payload=b"",
+                elapsed_seconds=0.0,
+                error_category="not_found",
+            )
+        if len(outcome.payload) > max_document_bytes:
+            return FetchOutcome(
+                url=url,
+                status=outcome.status,
+                content_type=outcome.content_type,
+                content_encoding=outcome.content_encoding,
+                payload=b"",
+                elapsed_seconds=outcome.elapsed_seconds,
+                error_category="document_too_large",
+            )
+        return outcome
+
+    return fetch_fixture
+
+
+def main() -> int:
+    """Read one JSON config and write one JSON object per discovery event."""
+    value = json.load(sys.stdin)
+    if not isinstance(value, Mapping):
+        raise ValueError("stdin JSON must be an object")
+    config = _config_from_json(value)
+    fixture = _fixture_fetcher(value)
+    events = (
+        iter_discovery_events(config)
+        if fixture is None
+        else iter_discovery_events(config, fetcher=fixture)
+    )
+    for event in events:
+        print(json.dumps(event, ensure_ascii=False, separators=(",", ":")), flush=True)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

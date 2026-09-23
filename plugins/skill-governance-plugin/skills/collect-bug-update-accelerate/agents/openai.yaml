@@ -1,4 +1,4 @@
 interface:
-  display_name: "Codex 故障复用与加速"
-  short_description: "复用已验证故障解法并路由永久修复"
-  default_prompt: "Use $collect-bug-update-accelerate for a real technical failure: preserve the 96-character Chinese notice limit, capture before changing route, reuse verified solutions, verify the original effect, and route permanent work to the unique owner. For space, path, version, or runtime-lifecycle incidents, hand off one HYGIENE_REQUEST to workspace-hygiene and do not recurse."
+  display_name: "Codex 故障族复用与加速"
+  short_description: "把每个真实故障归入稳定问题族并验证可复用方案"
+  default_prompt: "Use $collect-bug-update-accelerate for every real technical failure: capture the event, continue after RESOLUTION_REQUIRED, classify it into one evidence-backed stable problem family, execute and verify one guarded solution, and require closure-check success before treating the failure as complete. Never finish with a new scattered unclassified event, and never invent a root cause or solution. For space, path, version, or runtime-lifecycle incidents, hand off one HYGIENE_REQUEST to workspace-hygiene and do not recurse."

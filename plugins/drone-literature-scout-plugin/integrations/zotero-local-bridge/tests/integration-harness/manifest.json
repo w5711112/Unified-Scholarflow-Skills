@@ -5,7 +5,7 @@
   "description": "Disposable-profile fixture and rollback controls.",
   "applications": {
     "zotero": {
-      "id": "{4be173c6-9608-4ac3-8dc0-a85a5a0dc6c7}",
+      "id": "zotero-local-bridge-integration-harness@tests.local",
       "update_url": "https://obsidian-link.invalid/harness-updates.json",
       "strict_min_version": "9.0",
       "strict_max_version": "9.0.*"

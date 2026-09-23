@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "solutions": [
+    {
+      "solution_id": "powershell.foreach-buffer-then-pipe",
+      "family_id": "powershell.pipeline.foreach-direct",
+      "title": "先收集 foreach 输出，再进入管道",
+      "steps": [
+        "把 foreach 语句的输出赋给变量或用 @() 收集为数组。",
+        "在 foreach 语句结束后，把变量传给 Format-Table、ConvertTo-Json 或其他下游命令。",
+        "重新执行原命令并检查解析退出码和实际输出。"
+      ],
+      "applicability_guard": {
+        "os": ["windows"],
+        "shell_contains": ["powershell", "pwsh"]
+      },
+      "forbidden_routes": ["不要把 foreach 语句块直接接到管道符后。"],
+      "verification_contract": "PowerShell parser exits 0 and the intended downstream command receives the collected output.",
+      "migration_equivalence_any": ["buffer", "variable", "array", "collect", "先收集", "变量", "数组", "再传给"],
+      "effect_contract": {
+        "expected_effect": "The collected foreach output reaches the intended downstream command.",
+        "forbidden_side_effects": ["drop-output", "skip-downstream-command"],
+        "domain_semantics": false
+      },
+      "quality_guard": {
+        "preserve_output_fidelity": "Preserve every foreach output object and the requested downstream transformation.",
+        "forbidden_downgrade_routes": ["ignore-parser-error", "remove-required-output"]
+      },
+      "status": "verified",
+      "owner_skill": "global.collect-bug-update-accelerate"
+    },
+    {
+      "solution_id": "skillctl.grant-output-directory-write",
+      "family_id": "skillctl.atomic-write.directory-permission",
+      "title": "为原子写入授予输出目录权限",
+      "steps": [
+        "确认写入器会在最终文件的父目录创建同级临时文件，再执行原子替换。",
+        "为最终文件的父目录申请最小写权限，不能只授权最终文件本身。",
+        "使用原参数重新执行命令，核对最终文件已更新且没有遗留 .next 或同类临时文件。"
+      ],
+      "applicability_guard": {
+        "os": ["windows"]
+      },
+      "forbidden_routes": [
+        "只授权最终文件后原样重试",
+        "关闭原子写入并直接覆盖最终文件"
+      ],
+      "verification_contract": "The unchanged command completes, the final output is updated atomically, and no sibling temporary file remains.",
+      "effect_contract": {
+        "expected_effect": "The writer can create its sibling temporary file and atomically replace the intended output.",
+        "forbidden_side_effects": ["non-atomic-direct-write", "broaden-permission-beyond-output-directory"],
+        "domain_semantics": false
+      },
+      "quality_guard": {
+        "preserve_output_fidelity": "Keep the original atomic-write and validation path unchanged.",
+        "forbidden_downgrade_routes": ["disable-atomic-write", "write-unvalidated-output"]
+      },
+      "status": "verified",
+      "owner_skill": "global.collect-bug-update-accelerate"
+    }
+  ]
+}

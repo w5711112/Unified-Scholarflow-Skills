@@ -1,8 +1,9 @@
 import sys
 from pathlib import Path
 import unittest
+import os
 
-ROOT = Path(__file__).resolve().parents[5]
+ROOT = Path(os.environ.get('PAPER_IMPORT_TEST_PROJECT_ROOT', Path(__file__).resolve().parents[5]))
 sys.path.insert(0, str(ROOT / "skill-with-plugin" / "drone-literature-scout-plugin" / "skills" / "zotero-obsidian-paper-import" / "scripts"))
 
 from paper_import import normalize_doi, parse_paper_index

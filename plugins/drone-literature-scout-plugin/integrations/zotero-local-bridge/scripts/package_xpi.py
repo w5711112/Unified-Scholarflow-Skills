@@ -15,6 +15,7 @@ PACKAGE_FILES = (
     "bootstrap.js",
     "link_bridge.js",
     "manifest.json",
+    "merge_bridge.js",
 )
 ZIP_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
 

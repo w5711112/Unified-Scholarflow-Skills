@@ -19,9 +19,13 @@ description: Use after a verified Zotero paper import to read every PDF page and
 
 ## 触发、职责与权威读取
 
-本 Skill 在 `zotero-obsidian-paper-import` 已核验正式版本与 `application/pdf` 附件后执行。凡生成或修改简体中文论文笔记，固定经过 `专业语义草稿 → global.renhua → obsidian-note-style`：本 Skill 先依据全文证据写清事实与方法逻辑，`global.renhua` 负责中文表达和陌生复合词释义，`obsidian-note-style` 最后负责知识归属与格式。格式化阶段新增实质性正文时，新文字重新经过 `global.renhua`。本 Skill 仍独占全文证据、作者调研、论文强调语义、PDF 定位、Zotero 原生批注和完成门。
+本 Skill 在 `zotero-obsidian-paper-import` 核验正式 `application/pdf` 后执行。完整流程用 `workflow_scope: full`；`obsidian-only` 只作阶段交付并保持 `待精读`。复用现有 PDF 不能跳过 Zotero 批注、回链、附件身份或元数据同步。
 
-用户说“使用我的 Obsidian 语言风格”时，必须调用 `obsidian-note-style`；该触发语不改变上述先经 `global.renhua` 润色、再由 `obsidian-note-style` 定稿的固定顺序。
+中文笔记固定走 `专业语义草稿 → global.renhua → obsidian-note-style`，由 `scripts/validate_language_gate.py` 核验 `language-gate.json`；自报“已润色”无效。全文证据、作者、PDF 定位、原生批注和完成门仍由本 Skill 独占。
+
+`read-paper-analysis-highlight` 唯一负责批注选择、评论、颜色、坐标转换；`zotero-local-bridge` 只负责机械写入与原生读回；`global.collect-bug-update-accelerate` 只记录并路由真实故障。
+
+用户要求自己的 Obsidian 风格时调用 `obsidian-note-style`，且不改变先 `global.renhua`、后样式定稿的顺序。
 
 按当前任务分支完整读取一次下列直接参考；不预载无关分支，**直接参考不得继续路由第二层参考**：
 
@@ -35,11 +39,11 @@ description: Use after a verified Zotero paper import to read every PDF page and
 | 原生 bridge、首页记忆句、回链、插件安装与一次 UI 门 | `references/zotero-memory-link-and-ui-contract.md` |
 | Windows 路线、依赖、增量/最终验证、清理与交付 | `references/runtime-validation-and-cleanup.md` |
 
-本文件和上述参考共同构成权威合同；架构清单、authority map、计划、测试与报告只作记录，不能替代原要求。
+本文件与上述参考是权威合同；清单、计划、测试和报告只作记录。
 
 ## 单一证据主链
 
-每个对象在同一证据边界生成并验证一次，后续只消费对象 ID、来源哈希和状态。PDF、笔记 block、manifest、Zotero 快照、作者来源、视觉集合、用户内容或风险实质变化时，只刷新受影响对象及下游；不能进入新章节就重新验证全链。
+每个对象在同一证据边界只验证一次；输入实质变化时，仅刷新受影响对象及下游。
 
 | 对象 | 唯一内容 | 消费门 |
 | --- | --- | --- |
@@ -47,6 +51,8 @@ description: Use after a verified Zotero paper import to read every PDF page and
 | `READING_LEDGER` | schema v4 每页正文/公式/图/表/图注与 unresolved | 全文完成 |
 | `CLAIM_EVIDENCE_MAP` | 研究问题、公式、实验五槽、证据原子、知识缺口 | 笔记与批注选择 |
 | `AUTHOR_EVIDENCE` | 指定角色、身份消歧、字段、URL、日期、不确定性 | 三处作者交付 |
+| `VERSION_RECONCILIATION` | 无冲突的正式身份核验，或旧附件到正式附件的接管、元数据读回、backup 与证据重建 | 是否允许继续定位与完成 |
+| `LANGUAGE_GATE` | 语义草稿、renhua 输出、最终 block 哈希、术语取舍、个人内容哈希和通读验收 | 中文笔记可读性与真实性 |
 | `NOTE_PACKAGE` | 唯一 Callout、记忆句、精确链接、个人内容、视觉交接 | Obsidian 验收 |
 | `ANNOTATION_PLAN` | 稳定 ID、quote/quads、area 双坐标、颜色、评论、允许 keys | bridge preflight/apply |
 | `NATIVE_READBACK` | digests、回执、native keys、逐字评论、可编辑/删除/无锁、回链行为 | 原生效果门 |
@@ -57,7 +63,7 @@ description: Use after a verified Zotero paper import to read every PDF page and
 ### 身份、全文与状态
 
 - 摘要、网页、旧笔记和二手综述只定位，不能替代 PDF；优先从 Zotero PDF 跳转取得本地 PDF，本地 PDF 可用时，不先抓取网页，工具失败不等于论文不存在
-- DOI、标题、作者、版本冲突，非 `application/pdf`，页数/哈希不符，无可信 annotation-free backup，Snapshot/残缺 OCR 冒充全文，任一立即停止并保持 `待精读`
+- DOI、标题、作者、版本冲突，非 `application/pdf`，页数/哈希不符，无可信 annotation-free backup，Snapshot/残缺 OCR 冒充全文，任一立即停止并保持 `待精读`；冲突进入 `VERSION_CONFLICT`，按身份参考交回导入 Skill 完成正式版接管与读回后才能继续
 - 正式全文能力以可逐页读取的 `full-text` PDF 为准；身份、附件类型、协议能力预检与权限预检只在 `PAPER_BASELINE` 建立时验证一次，后续复用其哈希和状态
 - 读取真实 ProductVersion；本合同在 **Zotero 9.0.6** 验证，其他 Zotero 9 小版本重新做一次原生批注读回测试
 - overwrite 前必须有 SHA-256 可核验的 annotation-free、干净 backup；任何定义、公式、符号、下标、数量、几何形状、更新顺序、条件和边界都回到原 PDF，不能确认就写“未从原文确认”，不能改写成更强的绝对结论，**do not invent**
@@ -70,10 +76,12 @@ description: Use after a verified Zotero paper import to read every PDF page and
 - `READING_LEDGER` **每页恰好一条**；新建根对象必须声明 `schema_version: 4`，v3 仅兼容读取
 - 每页的 `equations_checked`、`figures_checked`、`tables_checked`、`captions_checked` 必须为 `checked|not_present`；`unresolved` 为空。图存在时 `figure_audits` 非空，不存在才允许 `not_present`
 - 每幅 `Fig.` 和每个 panel 实际视觉检查：标题/图注、正文引用、轴/单位/范围/刻度、图例、颜色/线型/形状、模块/箭头/数据流、趋势/数值/异常/失败及正文—公式—表一致性；不能以 OCR、空列表或 `not_present` 掩盖未读
-- 研究问题必须回答 Interesting、Solvable、Current level、Impactful，明确“新问题新方法 / 新问题老方法 / 老问题新方法 / 老问题成熟方法的新组合”，并完成 What / Why / How、Pros / Cons、如何拓展与利用
+- 研究问题审计前先回答“作者声称解决了什么当下的问题”，按“当下压力 → 现有失败 → 声称目标 → 证据边界”建立上下文，不写术语清单、不复制 What/Why/How；随后审计 Interesting、Solvable、Current level、Impactful 与新旧问题/方法分类，并完成 What/Why/How、Pros/Cons 和拓展
 - 控制、感知和机器人论文的每个主链模块必须按八项合同解释：**模块任务、输入来源、输入内容、实际处理顺序、输出的物理意义、下游接口、训练阶段与部署阶段的差异、条件与失效边界**。不能用术语替代解释，不能把“射线距离”“速度目标”“PPO 选速度”“几何投影”等词组当成已经说明；原文未给出的单位、维度、坐标系、频率或实现细节写“论文未报告”
 - 问题评估的稳定字段为 `Interesting（问题值得研究吗）`、`Solvable（问题可解吗）`、`Current level（当前研究水平）`、`Impactful（问题影响大吗）` 和 `新旧问题/方法分类`；字段名不得被摘要性改写替代
+- 其余研究审计槽位继续用 `What / Why / How`、`Pros / Cons` 与 `如何拓展与利用` 作为兼容检查名；实际笔记可在不改变含义的前提下展开为完整中文问句
 - 每个主张先确定**唯一语义归属**：在最合适的栏目完整陈述一次，其他栏目只新增事实、机制、条件、证据或边界；不得用同义改写再次陈述，也不得以“去重”为由删除数字、假设、局限或复现缺口
+- **可读性不是压缩率**：方案、模块或条件多时自然扩写为单一任务短段，禁止把知识点挤成长句或名词串。算法、模型、软件/硬件、数据集、API、缩写、符号及生硬/失真的中文译名保留英文；首次仍解释本文职责，并记录 `TERM_DECISION_LEDGER`
 - 每个公式解释整体作用、逐符号、从左到右计算与方向/正负、系统位置、设计原因、成立条件/失效方式。内部证据记录保留 `（PDF第 N 页）（公式 X）`；完成态 `已AI全文读` Callout 不显示 PDF 页码，只保留准确的公式、图、表和算法编号。三个以上待解释符号或解释超过两条列表时用嵌套折叠，不能只标编号或写“鼓励安全”
 - **知识点递进解释合同**：必须先写`第一层：直觉理解`，再写`第二层：公式与原理`，坚持“先直觉、后数学”；不得只用图代替公式。第二层给公式原文、逐符号解释、最小推导，以及数值代入或极端情形，再回扣直觉；够用即止，同一结论只说一次。组织顺序固定为“正文说明 → 现有图 → 读图与图例 → 公式与原理”，论文 Callout 只保留本文用途
 - 每个主张记录 Claim、Evidence、Condition、Status、Boundary；严格区分 `supported | partially_supported | not_established`、论文报告、可以推断、尚不能证明、论文明确承认的局限、未报告与疑点
@@ -96,6 +104,7 @@ description: Use after a verified Zotero paper import to read every PDF page and
 - 来源下一行写与 PDF 首页逐字相同的“**一眼记住这篇论文**”；允许使用 **1–3 个完整句子**，先让初学者知道谁接收什么、做什么、输出给谁，再收束原理—结构—效果。它不是术语口号，不能为了短而省略主语、对象归属或关键数据来源
 - **论文 Callout 强调语义合同**：粗体只作短扫描锚点，`==...==` 必须可独立复述；绿色只标有全文证据支撑的正面结果，红色标未提供链接、参数、硬件或解释等明确缺口/冲突/不成立。颜色与 `==...==` 不叠加，同一语义一个主强调，不得为了凑齐颜色而使用
 - 必须有明确 `**作者贡献**`；只有字段名加粗，逐项给贡献核心短语、新增内容、相对改变、正文/公式/图/实验定位和不能推出什么；分开写作者声称的贡献与全文证据支持的真实增量
+- “**作者声称解决了什么当下的问题？**”固定在论文类型/相关工作之后、研究问题审计之前；先交代作者当时面对的压力与目标，再由审计判断价值、可解性和证据
 - `知识索引` 仅链接既有或经 `obsidian-note-style` 验收的正式知识点，使用 `[[笔记#标题|别名]]` 或 `[[笔记#^block-id|别名]]` 精确定位；支撑链接（supporting links）必须能回到论文页码、公式、图表或可信外部来源。证据选择不设死板名单，以独立信息价值决定是否保留
 - **用户个人理解区强制合同**：每次生成完成态 AI Callout 时，必须在同一次写入中同步生成或核验紧随其后的 `> [!personal]+ 个人理解`，不得出现只有 AI Callout、没有个人理解 Callout。两者之间源码必须恰好保留一个真实空行；新建时内部必须为空，已有个人内容逐字保留。它在阅读模式默认展开，AI 不得生成、润色、移动或覆盖，不得拆分到单独笔记。个人 Callout 末行到下一篇 `###` 标题前的源码空行必须为 0，即下一篇 `###` 标题前不保留空行，可见间距必须为 0
 - 若 Sheets Extended 已启用且目标含普通 Markdown 表格，局部合并 `disable-sheet: true`；不得全局禁用/卸载，不机械加到无表笔记
@@ -109,6 +118,7 @@ description: Use after a verified Zotero paper import to read every PDF page and
 - area 只用于公式布局、算法框、图、表和视觉关系；同时保存 `pymupdf-page-top-left` 的 `rect`、`page_box`、`page_rotation` 和 `pdf-page-bottom-left` 的 `zotero_rect`
 - 外部暂存审计必须识别 PDF /Square 与 PDF /Ink，但二者不得当作 Zotero 原生路线：文本 quads 最终映射为 `highlight`，area 映射为 `image`。area 的两矩形均在 page box 内、面积一致，坐标往返的正反变换最大误差 **≤ 0.01 pt**；旋转页单独验证；每个 area 渲染并人工核对
 - 先由 `build_zotero_native_annotation_plan.py` 构造计划，再由 `zotero_local_bridge_client.py` 调用 `zotero-local-bridge`；固定 `health → preflight → apply → readback`，完成原生读回。同一计划/digests/回执原子执行。`409` 安全停止重建计划，`503` fresh health 恢复后最多重试一次；禁止前台脚本和鼠标，禁止直接写 SQLite，禁止重复 apply
+- 完整流程中，“未单独点名导入 Skill / PDF 已在本机 / 不重新下载”均不能把原生写回、版本接管或回链变成 `not_applicable`；只有明确 `obsidian-only` 才停在 `待精读`
 - 最终 `storage_mode: zotero-native`、可编辑、可删除、无锁、位置准确，未知用户批注变化为 0；只按 native key、完整指纹和 allow-key 精确删除
 - PDF 本体最终 embedded/external markup 为 0；首页记忆句和回链从干净 backup 单次生成，至少 **150–200 dpi** 渲染，并固定在 PDF 首页左上角；在 Zotero 内置阅读器点击后返回 Obsidian的对应精读位置
 - 回链固定 `https://obsidian-link.invalid/open?uri=<percent-encoded obsidian://open?...>`，`bridge_url_count = 1`、`direct_obsidian_uri_count = 0`；真实点击到当前论文 block，无外部协议确认框且 Edge 未调用
@@ -126,6 +136,6 @@ description: Use after a verified Zotero paper import to read every PDF page and
 
 ## 执行与交付
 
-按 `PAPER_BASELINE → READING_LEDGER → CLAIM_EVIDENCE_MAP → AUTHOR_EVIDENCE → NOTE_PACKAGE → ANNOTATION_PLAN → NATIVE_READBACK → PAPER_ACCEPTANCE` 执行。`NOTE_PACKAGE` 写回前完成 `专业语义草稿 → global.renhua → obsidian-note-style`，但专业事实与未报告边界仍由本 Skill 负责。`read-paper-analysis-highlight` 唯一负责批注选择、评论、颜色、坐标转换；`zotero-local-bridge` 只负责协议承载与原生写入，`global.collect-bug-update-accelerate` 只记录并路由故障。最终结果必须让每个关键问题、方法、证据、图表、作者信息和边界回到准确位置，批注仍可由用户编辑与删除；任何必需门失败都保持 `待精读`。
+按 `PAPER_BASELINE → VERSION_RECONCILIATION → READING_LEDGER → CLAIM_EVIDENCE_MAP → AUTHOR_EVIDENCE → LANGUAGE_GATE → NOTE_PACKAGE → ANNOTATION_PLAN → NATIVE_READBACK → PAPER_ACCEPTANCE` 执行。语言门通读完整 AI block，定稿后重验哈希；本 Skill 负责事实与批注语义，bridge 只机械写入，故障 Skill 只记录路由。
 
 本文件及其强制 reference 是唯一 canonical。规则或直接参考集合变化后，只刷新 `Skill完整指南/research/read-paper-analysis-highlight-完整指南.md`；用途、输入输出、协作或边界变化时，再更新《Skill 与 Plugin 的总体系说明》对应段与自动关系区。派生说明不得替代或反向覆盖 canonical。架构层级或直接参考集合只有在用户明确批准、架构版本提升并通过迁移测试后才可改变；普通内容增删不得顺带改变架构。

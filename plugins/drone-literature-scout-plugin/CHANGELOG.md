@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.1.0+codex.20260920081335 - 2026-09-20
+
+- Added prior-only reasoning reconstruction, a critical-assumption analysis and a discriminating counterexample within the existing paper-reading evidence chain.
+- Preserved existing evidence, native annotation and full-reading gates; clarified deterministic complete-guide synchronization and cleanup ownership.
+
 ## 2.1.0 - 2026-09-03
 
 - Retired byte-identical surface guide mirrors; each domain Skill now has one canonical `SKILL.md` only.

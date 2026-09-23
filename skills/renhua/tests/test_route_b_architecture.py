@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ENTRY = ROOT / "SKILL.md"
 DEFAULT_DRAFT_ROOT = Path(
-    r"<USER_HOME>\.zcode\workspace\default\humanize-compare\renhua-draft"
+    r"C:\Users\w5711112\.zcode\workspace\default\humanize-compare\renhua-draft"
 )
 DRAFT_ROOT = Path(os.environ.get("RENHUA_DRAFT_ROOT", str(DEFAULT_DRAFT_ROOT)))
 DRAFT_ENTRY = DRAFT_ROOT / "SKILL.md"
@@ -91,6 +91,8 @@ class RouteBArchitectureTests(unittest.TestCase):
             "paper-notes",
             "grant-proposal",
             "work-doc",
+            "general-text",
+            "dialogue",
             "每 300 字 ≤1 个",
             "约 40 字",
             "同段同构 ≤2 处",
@@ -107,13 +109,13 @@ class RouteBArchitectureTests(unittest.TestCase):
 
     def test_authority_map_has_no_missing_main_requirements(self) -> None:
         data = json.loads(AUTHORITY.read_text(encoding="utf-8"))
-        self.assertEqual(data["architecture_version"], "route-b-v2")
+        self.assertEqual(data["architecture_version"], "route-b-v3")
         self.assertEqual(data["main_compact_fixture_sha256"], hashlib.sha256(MAIN_FIXTURE.read_bytes()).hexdigest())
         self.assertEqual(data["draft_compact_fixture_sha256"], hashlib.sha256(DRAFT_FIXTURE.read_bytes()).hexdigest())
         self.assertEqual(data["direct_references"], list(DIRECT_REFERENCES))
         self.assertEqual(data["evidence_objects"], list(EVIDENCE_OBJECTS))
         self.assertEqual(data["rule_count"], 17)
-        self.assertEqual(data["scene_count"], 3)
+        self.assertEqual(data["scene_count"], 5)
         self.assertEqual(data["iron_law_count"], 5)
         self.assertEqual(data["delivery_gate_count"], 6)
         self.assertEqual(data["missing_main_requirements"], [])

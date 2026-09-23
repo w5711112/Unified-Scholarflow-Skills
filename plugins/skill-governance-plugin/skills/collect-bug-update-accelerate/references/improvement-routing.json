@@ -2,18 +2,32 @@
   "schema_version": 2,
   "fallback": {
     "owner_component": "global.collect-bug-update-accelerate",
-    "allow_auto_apply": true,
+    "allow_auto_apply": false,
     "recommended_surface": "skill-or-runtime",
     "external_evidence": false,
     "promotion_policy": "full"
   },
   "routes": [
     {
+      "component_prefixes": ["ecosystem-overview", "skill-guide", "skill-candidate-pool", "ecosystem-maintenance"],
+      "owner_component": "global.skill-ecosystem-governor",
+      "allow_auto_apply": false,
+      "recommended_surface": "owner-skill-or-deterministic-sync",
+      "external_evidence": false,
+      "promotion_policy": "full"
+    },
+    {
+      "component_prefixes": ["vault-maintenance", "workspace-hygiene", "artifact-retirement"],
+      "owner_component": "global.workspace-hygiene",
+      "allow_auto_apply": false,
+      "recommended_surface": "reviewed-hygiene-policy",
+      "external_evidence": false,
+      "promotion_policy": "full"
+    },
+    {
       "component_prefixes": [
         "incident-registry",
-        "ecosystem-overview",
-        "project-incident-guard",
-        "vault-maintenance"
+        "project-incident-guard"
       ],
       "owner_component": "global.collect-bug-update-accelerate",
       "allow_auto_apply": true,

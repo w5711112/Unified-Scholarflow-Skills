@@ -224,7 +224,7 @@ test('result validation rejects mismatched IDs, unknown keys, and foreign item U
     { ...base, task_id: 'fedcba9876543210fedcba9876543210' },
     { ...base, cookie: 'secret' },
     { ...base, payload: { ...base.payload, source_url: 'https://search.jd.com/Search?keyword=secret' } },
-    { ...base, payload: { ...base.payload, source_url: 'https://example:password@localhost/Search' } },
+    { ...base, payload: { ...base.payload, source_url: 'https://account:secret@search.jd.com/Search' } },
     { ...base, payload: { ...base.payload, source_url: 'https://search.jd.com/account/secret' } },
     { ...base, payload: { ...base.payload, source_url: 'https://evil.example/Search' } },
     {

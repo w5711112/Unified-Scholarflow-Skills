@@ -3,8 +3,6 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-import time
-import uuid
 from pathlib import Path
 
 from paper_import import (
@@ -27,46 +25,22 @@ def upload_existing_attachment(
     if not is_valid_pdf_bytes(path.read_bytes()[:1024]):
         raise ValueError(f"not a valid PDF: {path}")
 
-    session_id = f"paper-import-attachment-{uuid.uuid4().hex}"
-    session_status, session_body = zotero_connector_save_item(
-        {"items": [], "uri": source_url, "sessionID": session_id},
-        base_url=base_url,
-    )
-    if session_status not in (200, 201):
-        return {
-            "status": "session_failed",
-            "session_status": session_status,
-            "session_response": session_body.decode("utf-8", errors="replace"),
-            "parent_key": parent_key,
-        }
-
-    upload_status, upload_body = zotero_connector_upload_attachment(
-        session_id,
-        parent_key,
-        path,
-        source_url,
-        base_url=base_url,
-    )
-    time.sleep(0.8)
-    children = fetch_json(f"{base_url}/api/users/0/items/{parent_key}/children?limit=100")
-    pdfs = [
-        child
-        for child in children
-        if child.get("data", {}).get("contentType") == "application/pdf"
-    ]
-    matching = [child for child in pdfs if child.get("data", {}).get("title") == path.name]
-    attachment = matching[-1] if matching else (pdfs[-1] if pdfs else None)
-    result: dict[str, object] = {
-        "status": "imported_pdf" if upload_status in (200, 201) and attachment else "upload_failed",
+    # Connector saveAttachment does not accept an existing Zotero item key as
+    # parentItemID. It accepts only the connector item id emitted by saveItems
+    # in the same session. Failing closed here prevents the previous behaviour:
+    # an empty session followed by an invalid upload that looked automatable.
+    return {
+        "status": "existing_parent_attachment_requires_supported_ui_or_bridge",
         "parent_key": parent_key,
-        "session_status": session_status,
-        "upload_status": upload_status,
-        "upload_response": upload_body.decode("utf-8", errors="replace"),
-        "attachment_key": attachment.get("key") if attachment else None,
-        "attachment_count": len(pdfs),
+        "attachment_key": None,
         "pdf_path": str(path.resolve()),
+        "source_url": source_url,
+        "reason": (
+            "Connector saveAttachment requires the connector item id created "
+            "by saveItems in the same session; a Zotero parent key cannot be "
+            "used as parentItemID. Use a verified Zotero UI or supported bridge."
+        ),
     }
-    return result
 
 
 def main() -> int:

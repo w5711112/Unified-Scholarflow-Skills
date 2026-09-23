@@ -11,6 +11,7 @@ from pathlib import Path
 from pypdf import PdfReader
 
 from paper_import import is_valid_pdf_bytes, load_json
+from run_pipeline import pdf_candidates
 
 
 def _tokens(value: str) -> set[str]:
@@ -33,26 +34,7 @@ def extract_pdf_text(path: Path) -> str:
 
 
 def candidate_urls(paper: dict) -> list[str]:
-    urls = []
-    source = paper.get("source_url") or ""
-    if source.lower().endswith(".pdf") or "/pdf" in source.lower():
-        urls.append(source)
-    if "arxiv.org/abs/" in source:
-        urls.append(source.replace("/abs/", "/pdf/"))
-    if "proceedings.mlr.press" in source and source.endswith(".html"):
-        urls.append(source[:-5] + ".pdf")
-    if "roboticsproceedings.org" in source and source.endswith(".html"):
-        urls.append(source[:-5] + ".pdf")
-    ieee = re.search(r"ieeexplore\.ieee\.org/document/(\d+)", source)
-    if ieee:
-        urls.append(f"https://ieeexplore.ieee.org/stampPDF/getPDF.jsp?tp=&arnumber={ieee.group(1)}&ref=")
-    if "nature.com/articles/" in source:
-        urls.append(source.rstrip("/") + ".pdf")
-    if "science.org/doi/" in source:
-        urls.append(source.replace("/doi/", "/doi/pdf/"))
-    if paper.get("url", "").lower().endswith(".pdf"):
-        urls.append(paper["url"])
-    return list(dict.fromkeys(urls))
+    return pdf_candidates(paper)
 
 
 def download_verified(paper: dict, output_dir: Path) -> dict:

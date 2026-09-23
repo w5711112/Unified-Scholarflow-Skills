@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "problem_families": [
+    {
+      "family_id": "powershell.pipeline.foreach-direct",
+      "component": "powershell",
+      "operation": "pipeline",
+      "failure_phase": "parse",
+      "error_class": "empty-pipe-element",
+      "cause_class": "language-syntax",
+      "required_features": ["foreach"],
+      "any_features": ["empty pipe element", "direct foreach output pipeline", "piped directly", "followed directly by a pipe", "pipeline after foreach"],
+      "solution_ids": ["powershell.foreach-buffer-then-pipe"],
+      "owner_skill": "global.collect-bug-update-accelerate"
+    },
+    {
+      "family_id": "python.import.module-not-found",
+      "component": "python-dependency",
+      "operation": "import",
+      "failure_phase": "runtime",
+      "error_class": "module-not-found",
+      "cause_class": "module-resolution-failure",
+      "required_feature_groups": [["modulenotfounderror", "no module named"]],
+      "any_features": [],
+      "solution_ids": [],
+      "owner_skill": "global.collect-bug-update-accelerate"
+    },
+    {
+      "family_id": "apply-patch.context.expected-lines-not-found",
+      "component": "apply-patch",
+      "operation": "patch",
+      "failure_phase": "apply",
+      "error_class": "invalid-context",
+      "cause_class": "context-not-found",
+      "required_feature_groups": [["invalid context", "context mismatch", "failed to find expected lines"]],
+      "any_features": [],
+      "solution_ids": [],
+      "owner_skill": "global.collect-bug-update-accelerate"
+    },
+    {
+      "family_id": "git.repository.not-found",
+      "component": "git",
+      "operation": "repository-probe",
+      "failure_phase": "preflight",
+      "error_class": "not-a-repository",
+      "cause_class": "repository-metadata-not-found",
+      "required_feature_groups": [["not a git repository", "not-a-git-repository"]],
+      "any_features": [],
+      "solution_ids": [],
+      "owner_skill": "global.collect-bug-update-accelerate"
+    },
+    {
+      "family_id": "ripgrep.pattern.regex-parse",
+      "component": "ripgrep",
+      "operation": "search",
+      "failure_phase": "parse",
+      "error_class": "invalid-pattern",
+      "cause_class": "pattern-parse-failure",
+      "required_feature_groups": [["regex parse error", "unrecognized escape", "invalid escape"]],
+      "any_features": [],
+      "solution_ids": [],
+      "owner_skill": "global.collect-bug-update-accelerate"
+    },
+    {
+      "family_id": "skillctl.atomic-write.directory-permission",
+      "component": "skillctl",
+      "operation": "atomic-write",
+      "failure_phase": "write",
+      "error_class": "directory-write-permission-denied",
+      "cause_class": "sibling-temp-directory-permission",
+      "rule_match_enabled": false,
+      "solution_ids": ["skillctl.grant-output-directory-write"],
+      "owner_skill": "global.collect-bug-update-accelerate"
+    },
+    {
+      "family_id": "incident-registry.lock.permission",
+      "component": "incident-registry",
+      "operation": "lock",
+      "failure_phase": "write",
+      "error_class": "permission-denied",
+      "cause_class": "filesystem-permission",
+      "required_feature_groups": [["permission denied", "access is denied", "拒绝访问"], ["lock", "incident-registry"]],
+      "any_features": [],
+      "solution_ids": [],
+      "owner_skill": "global.collect-bug-update-accelerate"
+    }
+  ]
+}

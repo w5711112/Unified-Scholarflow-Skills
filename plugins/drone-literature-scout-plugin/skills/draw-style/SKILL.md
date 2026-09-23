@@ -57,7 +57,7 @@ description: Use when creating, selecting, editing, or reviewing scientific visu
 
 真实数据图先走 `数据结构 → 候选图型 → 人工定型 → 生产软件`，不能先按习惯打开某个软件再套图表。若用户尚未指定图型，按 `data-chart-selector.md` 给出 2—4 个统计上成立的候选、优缺点与误读风险，由用户最终选择；已明确且成立时直接执行。WPS 能忠实表达时优先保留原生可编辑图；高级二维统计和复杂布局用 Python；真实 2.5D/3D 空间效果用 MATLAB；复合图允许逐面板路由，但全图视觉语言必须统一。
 
-当其他领域写作 Skill 对数据血缘、统计含义或发布约束有明确规定时，选图前读取其当前合同。领域 Skill 负责数据与结论边界，`draw-style` 负责候选图型、视觉编码与终稿验收。普通论文、PPT 和 Obsidian 图可独立使用本 Skill。
+数学建模论文场景中，如 `visualizing-and-writing-modeling-papers` 可用，选图前读取其当前合同：该 skill 负责数据血缘、统计含义、人工选定方法和发布约束，`draw-style` 负责候选图型、视觉编码与终稿验收。普通论文、PPT 和 Obsidian 图不受数学建模专属入口门限制。
 
 ### 母版选择
 

@@ -76,7 +76,7 @@ class ObsidianRouteBArchitectureTests(unittest.TestCase):
             "必须调用",
             "是什么 → 为什么 → 怎么做 → 适用条件/局限 → 延伸链接",
             "当前无人机论文项目的知识文件冻结",
-            "安全控制与<YOUR_METHOD>.md",
+            "安全控制与安全强化学习.md",
             "路径规划与环境表示.md",
             "missing-file",
             "missing-heading",
@@ -91,7 +91,8 @@ class ObsidianRouteBArchitectureTests(unittest.TestCase):
             "论文报告",
             "可以推断",
             "尚不能证明",
-            "canonical 与聚合说明",
+            "canonical",
+            "完整指南",
         ]
         for phrase in required:
             self.assertIn(phrase, combined, phrase)

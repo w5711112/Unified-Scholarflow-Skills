@@ -1,0 +1,59 @@
+[
+  {
+    "id": "military_exhibitions_2026_h2",
+    "prompt": "调研中国今年下半年有哪些军事展会，尽量全面并给出时间地点。",
+    "reported_url_count": null,
+    "reported_domain_count": null,
+    "reported_search_seconds": null,
+    "failure_flags": [
+      "shown_results_do_not_establish_second_half_coverage"
+    ],
+    "verbatim_excerpt": "会展时间：2026-06-16至2026-06-18 9:00-17:00"
+  },
+  {
+    "id": "sleep_pillows_purchase",
+    "prompt": "调研睡眠枕头有哪些类型、价格、优缺点，我准备购买。",
+    "reported_url_count": null,
+    "reported_domain_count": null,
+    "reported_search_seconds": null,
+    "failure_flags": [
+      "no_comparable_price_table_returned"
+    ],
+    "verbatim_excerpt": "不同人群适合的枕头类型差异较大，记忆棉、乳胶、荞麦壳、羽绒等材质各有特点，需根据颈椎曲度、睡眠习惯等综合判断，没有“唯一最优解”。"
+  },
+  {
+    "id": "guangzhou_wenchong_hotels",
+    "prompt": "调研广州黄埔文冲附近有哪些酒店以及近期价格。",
+    "reported_url_count": null,
+    "reported_domain_count": null,
+    "reported_search_seconds": null,
+    "failure_flags": [
+      "no_current_price_for_specific_stay_dates_returned"
+    ],
+    "verbatim_excerpt": "如果您想在廣州文沖街文化廣場附近找一間提供早餐的飯店，可以考慮入住 廣州文沖希爾頓歡朋飯店 (起價 ILS166),全季飯店（廣州黃埔大沙東地鐵站店） (起價 ILS52)及廣州奧體中心金融城美居飯店 (起價 ILS70) 。"
+  },
+  {
+    "id": "goofish_keppler_flatbar_roadbike",
+    "prompt": "搜索闲鱼上出售速比特开普勒平把公路车的卖家，并整理商品和卖家公开信息。",
+    "reported_url_count": null,
+    "reported_domain_count": null,
+    "reported_search_seconds": null,
+    "failure_flags": [
+      "no_matching_listing_or_seller_details_returned",
+      "login_wall_observed"
+    ],
+    "verbatim_excerpt": "Image登录后可以更懂你，推荐你喜欢的商品！"
+  },
+  {
+    "id": "sinopec_daily_market_indicators",
+    "prompt": "获取中石化近一年的每日行情、MA5、MA20、换手率、量比、成交量、OHLC、KDJ 和 RSI。",
+    "reported_url_count": null,
+    "reported_domain_count": null,
+    "reported_search_seconds": null,
+    "failure_flags": [
+      "no_one_year_daily_dataset_returned",
+      "requested_technical_indicators_not_computed"
+    ],
+    "verbatim_excerpt": "此历史数据包括近期和往年中国石化（600028）股票的历史行情，每日股价和价格涨跌走势图表。选择日期范围，可按每日、每周或每月周期查询中国石化股票的收盘价、开盘价、最高价、最低价、价格变动、涨跌幅和股票收益率。"
+  }
+]

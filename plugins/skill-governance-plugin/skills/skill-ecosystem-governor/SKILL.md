@@ -1,24 +1,27 @@
 ---
 name: skill-ecosystem-governor
-description: Use when registering, migrating, releasing, or auditing multiple user-maintained Skills and their dependency relationships.
+description: Use when registering, migrating, releasing or auditing Skills, synchronizing guides, scheduling ecosystem maintenance, or reviewing third-party Skill candidates.
 ---
 
 # Skill Ecosystem Governor
 
-Use the plugin's single `ecosystem-registry.json` and resolver. Never hard-code a provider path when a component ID exists.
+Resolve component IDs through the plugin's single ecosystem-registry.json. Use register-component for additions and bound run-lifecycle --event routes for incident promotion or release packaging; ordinary run is not a lifecycle transaction.
 
-For a lifecycle change:
+## Lifecycle
 
-Use `register-component` for registry additions. Run incident promotion and release packaging through their bound `run-lifecycle --event` route; it always audits the owning provider plus detected registry changes, while `--changed-component` adds any external target. Ordinary `run` is not a lifecycle transaction.
+1. Resolve changed IDs and reverse consumers from requires; create one staging proposal.
+2. Freeze sources and backup; run owner tests and affected consumer tests.
+3. After authorization and green evidence, atomically switch active registry state.
+4. Every canonical change, including another owner's edit, runs component-scoped sync-guides. Changed purpose, inputs, outputs, collaboration or boundaries also require reviewed overview role updates and sync-overview.
+5. Run scoped audit of changed nodes, consumers, overview markers and guides, then full audit; regenerate the ecosystem lock only when green.
+6. Hand superseded material to workspace-hygiene for reviewed, reversible retirement.
 
-1. Resolve the changed component IDs and derive reverse consumers from `requires`.
-2. Create one staging proposal; do not create parallel candidates or a second registry.
-3. Run the changed providers' owner tests and the affected consumers' tests.
-4. After explicit authorization and green evidence, atomically switch the active registry state.
-5. For every registered canonical change, including one made through another owning Skill, run component-scoped `sync-guides`. If purpose, inputs, outputs, collaboration, or boundaries changed, update its overview role section and run `sync-overview`.
-6. Run component-scoped `audit`; it must cover changed nodes, reverse consumers, their overview source markers, and complete guides. Run the full audit, then regenerate the ecosystem lock only after all are green.
-7. Ask `workspace-hygiene` to propose retirement of superseded staging or rollback material; keep quarantine reversible.
+Return professional semantic judgment to its owner. Refuse direct deletion, a resident background watcher/daemon, a second registry and automatic changes to a running Skill. Failed lifecycle audits restore prior registry bytes and block lock publication. Clean audits create no success ledger.
 
-Refuse professional semantic judgment, direct deletion, a background watcher or daemon, a second registry, and automatic changes to a running Skill. Return domain questions to the owning Skill. A clean audit writes no success ledger. A failed audit restores the prior registry bytes, blocks lock publication, and leaves the non-active candidate for reviewed quarantine.
+Overview and complete guides are derived reading surfaces, never canonical. Scoped sync must leave unaffected guides untouched.
 
-The overview and complete guides are derived Obsidian reading surfaces, never canonical sources. Use `sync-overview` for the aggregate generated block and `sync-guides [component-id ...]` for full or component-scoped guide refresh. Component-scoped refresh must not rewrite unaffected guides.
+## Conditional routes
+
+- Scheduled checks, catch-up or mirror/guide conflicts: read [maintenance](references/maintenance-contract.md). The approved finite runner is scripts/ecosystem_maintenance.py at the resolved governance plugin root; invoke with Python -B -X utf8, dry-run by default.
+- Third-party discovery, candidate-pool comparison or review: read [candidate pool](references/candidate-pool-contract.md). Governor owns this capability; no new Skill. Searching-at-scale discovers sources, collect handles real failures, hygiene retires files.
+- These routes never authorize automatic domain-rule adoption or untested release publication. Ordinary lifecycle work does not preload their references.

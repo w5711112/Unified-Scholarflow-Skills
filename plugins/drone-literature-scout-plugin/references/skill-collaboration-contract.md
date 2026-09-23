@@ -24,7 +24,7 @@
 
 | Skill 名称 | 唯一职责 |
 | --- | --- |
-| `zotero-obsidian-paper-import` | 论文身份导入 |
+| `zotero-obsidian-paper-import` | 正式身份与 PDF 前置核验、唯一性导入、原生合并及 Zotero/Obsidian 引用一致性 |
 | `read-paper-analysis-highlight` | 全文证据/作者/PDF 批注 |
 | `obsidian-note-style` | 知识归属/视觉覆盖/Callout/WikiLink/媒体集成 |
 | `draw-style` | 跨场景科研绘图/视觉验收 |
@@ -35,11 +35,15 @@
 
 ## 交接关系
 
+- `zotero-obsidian-paper-import` 交付唯一父条目、已核验附件和同一份写后对账，`read-paper-analysis-highlight` 与 `obsidian-note-style` 直接消费。合并保留原 key 时验证后沿用链接，跨版本更换附件时重新核对页码和批注定位。输入或状态未变时不重复搜索来源或读取全库，历史快照不改写
+
 - `drone-literature-scout` 可调用 `searching-at-scale` 扩展查询和候选来源；`searching-at-scale` 返回候选和证据包，不直接写论文事实库。
 - `drone-literature-scout` 继续独占论文门槛、venue、算力/部署门槛、论文库审计、方向评分和最终接纳。
 - 需要绘图时，业务 Skill 交接使用场景、单一视觉主张、必须内容、证据与输出约束；`draw-style` 返回经过语义与视觉验收的主候选，业务 Skill 继续负责最终事实结论与落盘集成。
 - `obsidian-note-style` 不复制通用绘图细则；它在全 Vault 审计中发现缺图知识点后调用 `draw-style`，并保留 Obsidian 路径、嵌入宽度、折叠图例与媒体生命周期的唯一职责。
-- 用户明确要求检查或瘦身时，`global.collect-bug-update-accelerate` 只报告体积与候选并清理已验证可再生运行产物；它不接管笔记语义合并、WikiLink、最终媒体归属或 Zotero 数据判断。
+- 用户明确要求检查或瘦身时，由 `global.workspace-hygiene` 盘点、生成精确提案并按批准范围清理。`global.collect-bug-update-accelerate` 只在真实技术故障时提供记录与路线复用；笔记语义合并、WikiLink、最终媒体归属和 Zotero 数据判断仍交给各自领域负责人。
+
+- 第三方 Skill 的定期发现与审核由 `global.skill-ecosystem-governor` 的候选池统筹，`searching-at-scale` 只负责搜索和来源证据。候选记录是用户要求保留的成果，临时抓取文件按原清理规则处置；外部候选未经用户审核不得替换专业规则，不建立新的领域 Skill 或第二份组件注册表。
 
 ## 自我改进边界
 

@@ -1,7 +1,7 @@
 {
   "name": "skill-governance-plugin",
-  "version": "1.1.0+codex.20260904084902",
-  "description": "Minimal governance, incident reuse, workspace hygiene, migration, and release coordination for user-maintained Skills.",
+  "version": "1.1.0+codex.20260921023133",
+  "description": "Minimal governance, incident-family reuse, workspace hygiene, migration, and release coordination for user-maintained Skills.",
   "author": {
     "name": "Local developer"
   },
@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "Skill Governance Plugin",
     "shortDescription": "One registry and five governance Skills",
-    "longDescription": "Resolves canonical Skills, validates dependency and version invariants, reuses verified incidents, proposes reversible workspace cleanup, validates cross-host migrations, and prepares isolated GitHub releases.",
+    "longDescription": "Resolves canonical Skills, validates dependency and version invariants, groups technical events into stable problem families, reuses one guarded verified solution, proposes reversible workspace cleanup, validates cross-host migrations, and prepares isolated GitHub releases.",
     "developerName": "Local developer",
     "category": "Productivity",
     "capabilities": [],

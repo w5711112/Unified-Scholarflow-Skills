@@ -47,6 +47,19 @@ def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def package_tree_digest(package: Path) -> str:
+    """Return a deterministic digest of publishable relative paths and contents."""
+    entries = []
+    for path in sorted(package.rglob("*"), key=lambda item: item.as_posix()):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(package)
+        if is_generated(relative):
+            continue
+        entries.append(f"{relative.as_posix()}\0{digest(path)}\n")
+    return hashlib.sha256("".join(entries).encode("utf-8")).hexdigest()
+
+
 def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
@@ -164,11 +177,15 @@ def build(source: Path, profile_path: Path, output: Path) -> int:
         copied[name] = digest(destination)
     manifest = {
         "schema_version": 1,
-        "source_root": str(source),
+        "mode": "governed",
+        "source_name": source.name,
         "package_name": package_name,
         "files": copied,
         "excluded": sorted(excluded),
         "generalization": profile.get("generalization", {}),
+        "package_tree_sha256": package_tree_digest(target),
+        "local_prepared": False,
+        "ready_for_remote": False,
         "remote_mutation_performed": False,
     }
     (output / "release-manifest.json").write_text(
@@ -355,6 +372,7 @@ def prepare(source: Path, output: Path, profile_path: Path | None) -> int:
         "files": copied,
         "excluded": sorted(excluded),
         "redaction_counts": redaction_counts,
+        "package_tree_sha256": package_tree_digest(target),
         "local_prepared": False,
         "ready_for_remote": False,
         "remote_mutation_performed": False,
@@ -417,13 +435,28 @@ def validate(release: Path) -> int:
     if audit(package, report_path) != 0:
         print("release audit has blockers", file=sys.stderr)
         return 4
+    actual_tree_hash = package_tree_digest(package)
+    if manifest.get("package_tree_sha256") != actual_tree_hash:
+        print("release package tree hash does not match its manifest", file=sys.stderr)
+        return 4
     confirmation_path = release / "publication-confirmation.json"
     if not confirmation_path.is_file():
         print("remote publication confirmation is required", file=sys.stderr)
         return 4
     confirmation = load_json(confirmation_path)
-    required = {"repository", "visibility", "branch", "target_path", "license", "approved"}
-    if not required.issubset(confirmation) or confirmation.get("approved") is not True:
+    required = {"repository", "visibility", "branch", "license", "approved", "package_tree_sha256"}
+    has_target = isinstance(confirmation.get("target_path"), str) and bool(confirmation["target_path"].strip())
+    has_target = has_target or (
+        isinstance(confirmation.get("target_paths"), list)
+        and bool(confirmation["target_paths"])
+        and all(isinstance(item, str) and item.strip() for item in confirmation["target_paths"])
+    )
+    if (
+        not required.issubset(confirmation)
+        or confirmation.get("approved") is not True
+        or not has_target
+        or confirmation.get("package_tree_sha256") != actual_tree_hash
+    ):
         print("remote publication confirmation is incomplete", file=sys.stderr)
         return 4
     print(json.dumps({"ok": True, "ready_for_remote": True}, ensure_ascii=False))

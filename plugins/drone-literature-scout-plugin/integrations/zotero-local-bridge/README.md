@@ -21,8 +21,17 @@ python .\scripts\package_xpi.py --output .\dist\zotero-local-bridge-2.0.0.xpi
 - `bootstrap.js`
 - `link_bridge.js`
 - `manifest.json`
+- `merge_bridge.js`
 
-打包动作不安装插件，也不包含 token、source proxy、测试文件或临时状态。公开版使用固定 UUID 作为插件 ID；清单版本为 `2.0.0`。
+打包动作不安装插件，也不包含 token、source proxy、测试文件或临时状态。插件 ID 保持 `obsidian-link-bridge@read-paper-analysis-highlight.local`，以便从旧版原位升级；清单版本为 `2.3.0`。
+
+## 受限父条目合并
+
+`POST /zotero-local-bridge/v1/merge/preflight` 只读核验明确指定的个人库父条目及其子项，返回有效期 5 分钟的签名回执。`POST /zotero-local-bridge/v1/merge/apply` 在一个原生事务中检查快照未变，保留附件和批注 key，合并 notes、tags、collections 与 relations，将重复父条目移入回收站并读回。请求沿用本机 HMAC 认证，拒绝浏览器 Origin、跨库、任意字段和执行脚本。
+
+`formal_metadata` 只接受已核实的期刊或会议字段。`preprint_metadata` 是既有 arXiv 条目误分类的纠错分支，要求题名匹配、arXiv ID、来源 URL 和可选 arXiv DOI 一致，不能覆盖冲突的正式 DOI。两个模式互斥，均需要专业身份材料的 SHA-256。它们不提供新建父条目、删除附件或任意数据库写入能力。控制器为导入 Skill 的 `scripts/merge_duplicates.py`，网络结果不明时先对账，禁止自动重发。
+
+元数据或保留项回读失败即回滚。隔离测试覆盖类型变更后的内存状态恢复、原生事务回滚与重放阻断；测试夹具不得进入正式包。现有附件挂载与正式版本文件替换仍需另一个已验证的受支持接口，合并成功不代表正式 PDF 接管完成。
 
 ## 安装边界
 

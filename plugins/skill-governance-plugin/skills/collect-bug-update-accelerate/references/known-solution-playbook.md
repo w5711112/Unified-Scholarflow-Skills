@@ -1,5 +1,29 @@
 # 已验证故障解法手册
 
+## schema v3 权威绑定
+
+可执行方案以 `solution-catalog.json` 为机器权威，本文件解释适用边界。事件只引用方案 ID，不复制步骤。
+
+### PowerShell foreach 直接接管道
+
+- `family_id`: `powershell.pipeline.foreach-direct`
+- `solution_id`: `powershell.foreach-buffer-then-pipe`
+- 适用条件：Windows PowerShell 或 pwsh；解析阶段出现 foreach 语句块直接进入管道造成的空管道元素或等价语法错误。
+- 做法：先把 foreach 输出收集到变量或 `@()`，再把变量传给 `Format-Table`、`Format-List`、`ConvertTo-Json` 等下游命令。
+- 验证：解析退出码为 0，且下游命令收到预期对象。
+- 禁止：不得再次把 foreach 语句块直接接到管道符。
+
+### skillctl 原子写入缺少目录权限
+
+- `family_id`: `skillctl.atomic-write.directory-permission`
+- `solution_id`: `skillctl.grant-output-directory-write`
+- 适用条件：Windows 受限文件系统环境；`skillctl` 的原子写入需要在最终文件旁创建 `.next` 或随机临时文件，但当前只授权了最终文件，或父目录不可写。
+- 做法：确认原子写入路径后，只为最终文件的父目录补充写权限，保持原命令和原子替换流程不变，再执行一次。
+- 验证：原命令成功，最终文件已更新，目录中没有残留临时文件。
+- 禁止：不能关闭原子写入、直接覆盖最终文件，也不能扩大到无关父目录。
+
+目录中没有唯一已验证 `solution_id` 的问题族只可作为候选或诊断线索，不能触发强制复用。
+
 ## 目录
 
 - Windows 与 PowerShell
@@ -69,7 +93,7 @@
 ### Windows split writable roots
 
 - **症状**：`windows unelevated restricted-token sandbox cannot enforce split writable root sets`
-- `apply_patch` 或 `view_image` 第一次命中后不要重复相同调用；先检查 `<USER_HOME>\.codex\config.toml` 的 `[windows]` 沙箱模式和 `.codex\.sandbox\setup_error.json`
+- `apply_patch` 或 `view_image` 第一次命中后不要重复相同调用；先检查 `C:\Users\<用户>\.codex\config.toml` 的 `[windows]` 沙箱模式和 `.codex\.sandbox\setup_error.json`
 - 如果错误停在 `apply deny-read ACLs`，且 `deny_read_acl_state.json` 是全零字节或无效 JSON：先备份该文件并保留校验值，再移出活动路径；把配置改为 `sandbox = "elevated"`，随后重启 Codex 并完成管理员批准
 - 验证门：`setup_error.json` 不存在，新生成的 ACL 状态是有效 JSON，并分别直接验证一次 `apply_patch` 与 `view_image`
 - 后台 Node 精确替换只是在暂时不能重启时使用的临时路线；必须断言旧文本只命中 1 次、写回 UTF-8 并重读测试，不能登记为永久修复

@@ -28,10 +28,32 @@ class AreaCoordinateManifestTests(unittest.TestCase):
     def _make_pdf(self) -> Path:
         source = self.case / "paper.pdf"
         document = fitz.open()
-        document.new_page(width=300, height=300)
+        page = document.new_page(width=300, height=300)
+        page.insert_text((30, 50), "This exact evidence phrase supports native coordinates.")
         document.save(source)
         document.close()
         return source
+
+    def _highlight(self) -> dict:
+        return {
+            "id": "fixture-highlight-v3",
+            "page": 1,
+            "annotation_type": "highlight",
+            "annotation_schema_version": 3,
+            "quote": "This exact evidence phrase supports native coordinates",
+            "kind": "method",
+            "color": "yellow",
+            "note_question": "Which phrase carries the evidence?",
+            "claim": "The selected sentence carries the exact evidence needed for a native highlight.",
+            "reason": "The complete phrase is unique and preserves the method relation without guessing a rectangle.",
+            "information_roles": ["method", "mechanism"],
+            "evidence": "PDF page 1",
+            "confidence": "high",
+            "annotation_comment": (
+                "结论：这条唯一原文短语应能继续转换为 Zotero 原生高亮。\n"
+                "机制：解析清单必须同时保留页框与旋转信息。"
+            ),
+        }
 
     def _area(self) -> dict:
         return {
@@ -107,6 +129,20 @@ class AreaCoordinateManifestTests(unittest.TestCase):
                         self.case / f"manifest-{invalid}.json",
                         [area],
                     )
+
+    def test_resolved_highlight_records_page_geometry_for_native_builder(self):
+        source = self._make_pdf()
+        result = annotate_pdf(
+            source,
+            self.case / "highlighted.pdf",
+            self.case / "highlight-backup.pdf",
+            self.case / "highlight-manifest.json",
+            [self._highlight()],
+        )
+
+        highlight = result["annotations"][0]
+        self.assertEqual(highlight["page_box"], [0.0, 0.0, 300.0, 300.0])
+        self.assertEqual(highlight["page_rotation"], 0)
 
 
 if __name__ == "__main__":

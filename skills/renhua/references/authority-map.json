@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "architecture_version": "route-b-v2",
+  "architecture_version": "route-b-v3",
   "skill": "renhua",
   "main_is_authoritative": true,
   "draft_alignment_mode": "byte-identical-package",
@@ -29,11 +29,55 @@
     "DELIVERY_ACCEPTANCE"
   ],
   "iron_law_count": 5,
-  "scene_count": 3,
+  "scene_count": 5,
   "rule_count": 17,
   "execution_step_count": 3,
   "delivery_gate_count": 6,
   "default_output_section_count": 3,
+  "default_scene": "general-text",
+  "scene_contracts": {
+    "paper-notes": {
+      "signals": ["paper", "abstract", "knowledge note", "method explanation"],
+      "register": "academic"
+    },
+    "grant-proposal": {
+      "signals": ["grant proposal", "research objective", "project basis"],
+      "register": "proposal"
+    },
+    "work-doc": {
+      "signals": ["responsibilities", "workflow", "acceptance criteria", "normative clauses"],
+      "register": "formal-operational"
+    },
+    "general-text": {
+      "signals": ["ordinary paragraph", "email", "message", "public article", "spoken script"],
+      "register": "preserve-source-purpose"
+    },
+    "dialogue": {
+      "signals": ["chat turns", "reply request", "question and answer"],
+      "register": "natural-conversational"
+    }
+  },
+  "universal_behavior_contract": {
+    "outcome": ["human", "balanced", "logically-closed", "context-correct", "easy-to-understand"],
+    "forbidden_stance": ["servile", "self-deprecating", "accusatory", "threatening", "provocative"],
+    "preserve_required_normative_force": true,
+    "forbid_unsupported_absolute_guarantees": true,
+    "source_and_commitment_boundary": {
+      "condition": "when-authoritative-material-exists",
+      "preserve_existing_obligations": true,
+      "forbid_scope_expansion": true,
+      "forbid_invented_source_audit": true
+    },
+    "cross_document": {
+      "consistent_terms_objects_numbers_and_references": true,
+      "single_owner_for_repeated_substance": true,
+      "verification": "one-integrated-delivery-decision"
+    },
+    "table_centering": {
+      "evidence": ["property-inspection", "word-or-wps-render-inspection"],
+      "edge_cases": ["merged-cells", "multi-paragraph-cells", "save-reopen"]
+    }
+  },
   "section_ownership": {
     "entry": [
       "trigger and exclusions",
@@ -50,7 +94,11 @@
       "paper-notes",
       "grant-proposal",
       "work-doc",
-      "generated Obsidian/Word language gate",
+      "general-text",
+      "dialogue",
+      "universal Simplified-Chinese language gate",
+      "source and commitment boundaries",
+      "cross-document consistency",
       "conflict precedence",
       "protected content",
       "false-positive protection"
@@ -67,6 +115,8 @@
     "document-table-format": [
       "three-line tables",
       "cell alignment",
+      "render-verified centering",
+      "merged and multi-paragraph cell checks",
       "no-space alignment",
       "explicit zero indentation",
       "adjacent table separation",
@@ -90,22 +140,22 @@
   },
   "preserved_rule_groups": {
     "R1": "punctuation hard rules",
-    "R2": "reversal rhetoric and symmetric skeletons",
+    "R2": "reversal rhetoric, symmetric skeletons, and necessity-based defensive-expression control",
     "R3": "postposed judgment sentences",
     "R4": "opening boilerplate",
     "R5": "closing uplift and future stitching",
     "R6": "parallelism and symmetry",
-    "R7": "empty modifiers and exaggeration",
+    "R7": "empty modifiers, exaggeration, and unsupported stance intensity",
     "R8": "unsourced attribution",
     "R9": "nominalization restoration",
     "R10": "subjects and references",
     "R11": "rhythm",
-    "R12": "jargon and boilerplate density",
-    "R13": "dialogue residue prohibition",
-    "R14": "context leakage prohibition",
-    "R15": "terminology, compound-term expansion, object ownership, and concept consistency",
-    "R16": "logical traceability",
-    "R17": "paragraph structure and semantic reproduction"
+    "R12": "jargon, internal drafting language, and boilerplate density",
+    "R13": "AI dialogue residue and imbalanced stance prohibition",
+    "R14": "context and drafting-process leakage prohibition",
+    "R15": "terminology, compound-term expansion, object ownership, framework-component boundaries, and cross-document consistency",
+    "R16": "logical, source, commitment, and cross-document traceability",
+    "R17": "paragraph structure, semantic reproduction, document responsibility, and functional deduplication"
   },
   "main_only_legacy_content_promoted_to_both_packages": [
     "Word/WPS three-line-table contract",
@@ -119,7 +169,9 @@
     "duplicating a full rule in the entry",
     "letting the draft overwrite the main skill",
     "using detector scores or text shortening as acceptance",
-    "letting an Obsidian or Word formatting step bypass the renhua language gate"
+    "letting an Obsidian or Word formatting step bypass the renhua language gate",
+    "turning general-text or dialogue into academic prose by default",
+    "splitting one acceptance requirement into repeated independent verification loops"
   ],
   "missing_main_requirements": []
 }

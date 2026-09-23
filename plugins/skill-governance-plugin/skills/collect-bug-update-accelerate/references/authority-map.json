@@ -16,7 +16,7 @@
     },
     {
       "legacy_sections": ["组件命名一致性", "质量档位守卫", "什么时候才预检", "错误后的最短闭环"],
-      "authoritative_targets": ["incident-schema.md"]
+      "authoritative_targets": ["incident-schema.md", "problem-family-catalog.json", "solution-catalog.json"]
     },
     {
       "legacy_sections": ["后台路线与依赖"],
