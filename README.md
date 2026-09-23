@@ -443,6 +443,112 @@ git clone https://github.com/w5711112/Unified-Scholarflow-Skills.git
 
 ---
 
+---
+
+## 实验教程：依赖、下载与核心流程
+
+### 0. 仓库协议
+
+本仓库使用 **MIT License**（宽松开源协议）：可以自由使用、修改、分发，保留版权声明与许可文本即可。适合个人科研工具与二次开发。若后续要闭源分发或加专利条款，再换 Apache-2.0/GPL 也不迟。
+
+### 1. 环境依赖（先装齐）
+
+| 类别 | 需要什么 | 用途 |
+| --- | --- | --- |
+| 操作系统 | Windows 10/11（当前以 Windows 实测为准） | Edge 桥、Zotero 本地桥 |
+| Python | **3.10+** | 多数 Skill 脚本 |
+| Python 包 | `PyMuPDF`、`pypdf`、`PyYAML`（及各 Skill 的 `REQUIREMENTS.md` 所列） | PDF 读写、配置 |
+| Node.js | **18+**（建议 20+） | Edge 扩展客户端、部分工具 |
+| 浏览器 | **Microsoft Edge**（Chromium） | searching-at-scale 扩展与 Native Host |
+| 文献管理 | **Zotero 7+** + Zotero Connector | 条目、附件、批注 |
+| 笔记 | **Obsidian**（任意近期版本） | 精读笔记与双链 |
+| Agent 宿主 | Codex / Claude Code / Kimi / MiMo Desktop / DeepSeek Harness 等 | 加载 Skill 并执行脚本 |
+
+安装 Python 包示例：
+
+```powershell
+python -m pip install PyMuPDF pypdf PyYAML
+```
+
+Node 若未安装，可使用系统 Node 或自行安装 LTS 版本。
+
+### 2. 下载与放置
+
+```powershell
+git clone https://github.com/w5711112/Unified-Scholarflow-Skills.git
+cd Unified-Scholarflow-Skills
+```
+
+- **独立 Skill**（`skills/renhua`、`skills/skill-contract-lock`）：整目录复制到宿主的技能路径，例如 `~/.agents/skills/renhua/`。不要只复制 `SKILL.md`。
+- **Plugin**（`plugins/drone-literature-scout-plugin`、`plugins/skill-governance-plugin`）：保留完整目录（含 `skills/`、`scripts/`、`integrations/`、`.codex-plugin/`），再按宿主的插件方式加载。
+- **学术 PPT**：安装姊妹仓 [academic-native-ppt-design-HNU-style](https://github.com/w5711112/academic-native-ppt-design-HNU-style)。
+
+### 3. 一次完整实验的推荐顺序（与核心链路一致）
+
+```text
+searching-at-scale
+    → drone-literature-scout
+        → zotero-obsidian-paper-import
+            → read-paper-analysis-highlight
+                → renhua（可选，中文表达）
+                    → obsidian-note-style
+                        → draw-style / 湖大 PPT（按需）
+```
+
+**步骤 1 · searching-at-scale（搜与爬）**
+
+1. 配置检索主题、站点范围、停止条件（见 Skill 内 `references/`）。
+2. 安装 Edge 扩展并注册 Native Host：  
+   `python scripts\edge_bridge_ctl.py install`  
+   需要登录态网页时，用 `launch --profile ...\edge-profile` 启动专用 Edge。
+3. 跑检索任务，导出候选 URL 与结构化记录。
+
+**步骤 2 · drone-literature-scout（筛）**
+
+1. **名称说明：** 目录名里的 `drone` 只是当前示例主题（无人机方向），不是协议限制。换领域时改关键词与筛选配置即可。
+2. **必须自己配置期刊/会议白名单**（`references/venue-white-list.md` 等）：本领域哪些算可靠来源，由使用者决定，公开包不能替所有人定标准。
+3. 输出：可信文献清单 + 纳入/排除理由。
+
+**步骤 3 · zotero-obsidian-paper-import（正式版入库）**
+
+1. Zotero 打开本机通信；需要批注回链时安装 `integrations/zotero-local-bridge/`。
+2. Obsidian 建好 Vault 与论文索引笔记。
+3. 按正式版本优先规则导入 DOI/PDF，检查 Zotero 父条目 + 附件，并确认 Obsidian 可跳转。
+
+**步骤 4 · read-paper-analysis-highlight（精读）**
+
+对已入库 PDF 做视觉+文本精读，在 PDF 上留高亮与理解批注，并在 Obsidian 汇总问题/方法/公式/实验/代码等。
+
+**步骤 5 及之后**  
+`renhua` 理顺中文；`obsidian-note-style` 整理层级与双链；需要图或汇报时再用 `draw-style` 与湖大 PPT Skill。
+
+### 4. 注意事项（按实际情况改，不要照抄示例）
+
+| 点 | 说明 |
+| --- | --- |
+| **期刊/会议白名单** | **必须按本领域自行维护**。默认或示例列表不能代表你的学科标准。 |
+| **`drone` 命名** | 仅为历史示例主题名，**暂时叫法**；可整体替换为你的研究方向词。 |
+| **检索关键词与站点** | 公开包不含维护者研究关键词；请换成自己的范围，否则搜不到或搜偏。 |
+| **Zotero 库与路径** | 使用本机 Zotero 配置；公开包不带真实库 ID。 |
+| **Obsidian Vault** | 路径、索引结构按自己的笔记习惯改。 |
+| **Edge 登录** | 广域检索用的专用 profile 与日常 Edge 分离；账号登录问题不影响管道桥本身。 |
+| **自动化边界** | 身份核验、质量分层有规则可依；**是否把某篇写进研究结论仍由人判断**。 |
+| **合法 PDF** | 仅从出版社、机构仓储等合法入口获取全文。 |
+
+### 5. 最小自检清单
+
+1. `python scripts\edge_bridge_ctl.py status` 中 `ready_for_edge_launch` 为 true（若使用 Edge 桥）  
+2. `probe` 能对当前管道得到 `ok: true`  
+3. Zotero 能看到测试条目与 PDF 附件  
+4. Obsidian 中链接可从笔记点到 Zotero，并能跳回  
+5. 至少一篇论文走完「检索 → 筛选 → 入库 → 精读」并留下高亮与笔记  
+
+### 6. 协议与第三方
+
+代码与文档默认 **MIT**。浏览器、Zotero、Obsidian 及 Python/Node 依赖受各自协议约束，见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+
+---
+
 ## 11. 仓库内容与隐私
 
 含规则、脚本、占位符配置与脱敏示意图。调研关键字已遮盖，论文标题局部打码。自动下载仅针对出版社、会议、机构仓储或作者明确提供的合法入口。见 [SECURITY.md](SECURITY.md)。

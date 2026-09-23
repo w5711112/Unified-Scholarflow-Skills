@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DRAFT_ROOT = Path(
     os.environ.get(
         "RENHUA_DRAFT_ROOT",
-        r"C:\Users\w5711112\.zcode\workspace\default\humanize-compare\renhua-draft",
+        r"C:/path/to/home/.zcode\workspace\default\humanize-compare\renhua-draft",
     )
 )
 REFS = ROOT / "references"
@@ -152,7 +152,7 @@ class BehaviorContractTests(unittest.TestCase):
             "firstLineChars=0",
             "相邻两张表格之间必须插入一个空段落",
             "document-skills:docx",
-            "math-modeling-plugin-v2/skills/paper-writing",
+            "domain-plugin-v2/skills/paper-writing",
             "python-docx",
         ):
             self.assertIn(token, main)
