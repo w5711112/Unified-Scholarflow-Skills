@@ -81,7 +81,7 @@ class ReleaseToolTests(unittest.TestCase):
             root = Path(name)
             package = root / "package"
             package.mkdir()
-            secret = "ghp_" + "abcdefghijklmnopqrstuvwxyz1234567890"
+            secret = "ghp_" + "FAKE_TEST_TOKEN_NOT_A_REAL_KEY_01"
             private_path = "C:" + "\\Users\\private-user\\Documents\\Vault"
             (package / "SKILL.md").write_text(
                 f"token={secret}\n"
@@ -129,7 +129,7 @@ class ReleaseToolTests(unittest.TestCase):
             source = root / "drone-helper"
             (source / "scripts").mkdir(parents=True)
             private_path = "C:" + "\\Users\\private-user\\Documents\\Private Vault\\notes"
-            secret = "ghp_" + "abcdefghijklmnopqrstuvwxyz1234567890"
+            secret = "ghp_" + "FAKE_TEST_TOKEN_NOT_A_REAL_KEY_01"
             (source / "SKILL.md").write_text(
                 "---\nname: drone-helper\ndescription: Helps with drone literature.\n---\n"
                 f"# Drone helper\n\nKeep the drone preference. Topic: private-topic.\n"

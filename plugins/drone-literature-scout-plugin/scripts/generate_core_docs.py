@@ -19,7 +19,7 @@ from research_metrics import rank_directions
 DIRECTIONS = [
     {
         "name": "<YOUR_RESEARCH_PROJECT>",
-        "summary": "研究单架无人机在动态障碍、感知误差和控制延迟同时存在时，如何用低维风险/走廊表示与安全过滤器完成轻量化轨迹规划；重点不是重复普通避障，而是给出资源—风险—泛化之间可复现实验边界。",
+        "summary": "研究单架无人机在动态障碍、感知误差和控制延迟同时存在时，如何用低维风险/走廊表示与安全过滤器完成轻量化轨迹规划；给出资源、风险与泛化之间的可复现实验边界。",
         "keywords": ["dynamic obstacle", "safe reinforcement learning", "uncertainty", "trajectory planning", "corridor", "risk-aware", "monocular", "LiDAR", "risk-tendency", "VO-Safe", "visual odometry", "semantic scenes"],
         "feasibility": "采用两层同接口环境，并把传感器与地图做成可消融变量：第一层是无渲染的 GPU 向量化高层规划环境，用栅格/走廊/动态风险表示训练 B-spline 或低维策略；第二层把同一策略接入 Isaac Lab 无渲染 PhysX 六自由度四旋翼模型，校验质量、惯量、推力、执行器延迟、风扰和传感器延迟。先建立三条可比较链路：LiDAR + 局部建图 + SFC/安全过滤器，激光测距 + 无地图风险策略，以及相机 + VO/语义场景的定位安全策略。安全保障建议分层：几何碰撞约束或 CBF/备用控制器负责硬约束，风险分布或不确定性估计负责策略趋保守，悬停/返航/急停负责超出观测分布时的失效回退；这些是本项目设计假设，不是现有论文已经共同证明的结论。",
         "risk": "NavRL 已经把 PPO、动态障碍、速度障碍安全层、Isaac Sim 和 Jetson Orin NX 组合起来，CORB-Planner 已经在 IEEE/ASME Transactions on Mechatronics 2025 展示低维安全飞行走廊、建图依赖和约十分钟训练；ART-IQN 说明不显式建图的四向激光风险策略可以轻量运行，但其策略在 laptop 上执行，Jetson 适配未报告；VO-Safe 说明相机/VO/语义输入可以避免定位失效，但实验使用 collision-free 环境，不能把定位安全写成障碍碰撞安全。若只替换算法或传感器，论文新颖性不足。必须补上感知不确定性、动作延迟、遮挡/漏检、未见障碍速度和完整资源—风险曲线，并在真实无人机上验证。",
@@ -118,7 +118,7 @@ DIRECTIONS = [
     },
     {
         "name": "视觉/激光状态估计与控制协同设计",
-        "summary": "研究视觉、激光或视觉惯性估计的不确定性如何进入轨迹规划和控制，而不是把估计当成黑盒前置模块。",
+        "summary": "研究视觉、激光或视觉惯性估计的不确定性如何进入轨迹规划和控制。估计模块与规划控制之间的接口需要显式建模。",
         "keywords": ["state estimation", "lidar", "visual inertial", "uncertainty", "control"],
         "feasibility": "采用轻量滤波、局部几何和不确定性传播，避免大型场景模型，适合 Jetson 级在线闭环。",
         "risk": "估计与控制的接口若没有可量化收益，容易成为系统集成；要有延迟、失效和安全事件对比。",

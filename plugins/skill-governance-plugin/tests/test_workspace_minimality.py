@@ -5,7 +5,7 @@ ACTIVE_ROOTS = [
     Path(r"C:/path/to/home/.agents\skills"),
     Path(r"C:/path/to/home/.agents\plugins\sources\skill-governance-plugin"),
     Path(r"C:/path/to/vault/project\skill-with-plugin\drone-literature-scout-plugin"),
-    Path(r"D:/path/to/other-work\2026年省赛工作空间\paper-skill-location\other-workflow-plugin"),
+    Path(r"D:/path/to/other-work\workspace\skills\other-workflow-plugin"),
 ]
 
 
