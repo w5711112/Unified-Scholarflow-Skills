@@ -2,7 +2,7 @@ import struct
 import unittest
 from pathlib import Path
 
-VAULT = Path(r"C:\Users\w5711112\Documents\Obsidian Vault")
+VAULT = Path(r"C:/path/to/vault")
 TARGET = VAULT / "路径规划与环境表示.md"
 HUMAN = VAULT / "人机协同.md"
 MEDIA = VAULT / "AI绘图存放位置"

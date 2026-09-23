@@ -14,7 +14,7 @@
   "public_registry_path": "C:/path/to/your/vault\\skill-with-plugin\\运行数据\\collect-bug-update-accelerate\\incident-registry.json",
   "local_registry_relative_path": ".codex-runtime/collect-bug-update-accelerate/incident-registry.json",
   "forbidden_paths": [
-    "D:/path/to/share\\AIM\\<YOUR_TOPIC>\\中标后文件\\禁止读取与编辑的归档资料"
+    "D:/path/to/share\\AIM\\<YOUR_TOPIC>\\归档目录\\禁止读取与编辑的归档资料"
   ],
   "exclusions": [
     "ordinary-chatgpt-chats",

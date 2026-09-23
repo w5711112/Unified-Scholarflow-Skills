@@ -75,11 +75,11 @@ class ProjectIncidentGuardTests(unittest.TestCase):
         self.assertEqual(
             scope["approved_project_roots"],
             [
-                r"C:\Users\w5711112\Documents\Obsidian Vault",
-                r"D:\win-linux-share\AIM\<YOUR_TOPIC>",
-                r"C:\Users\w5711112\Documents\Obsidian Vault\<YOUR_RESEARCH_PROJECT>",
-                r"D:\win-linux-share\AIM\<YOUR_TOPIC>\kimi调整",
-                r"C:\Users\w5711112\Documents\Obsidian Vault\<NOTE_VAULT_NAME>",
+                r"C:/path/to/vault",
+                r"D:/path/to/share\AIM\<YOUR_TOPIC>",
+                r"C:/path/to/vault/project",
+                r"D:/path/to/share\AIM\<YOUR_TOPIC>\kimi调整",
+                r"C:/path/to/vault/project",
             ],
         )
         self.assertEqual(len(set(scope["approved_project_roots"])), 5)

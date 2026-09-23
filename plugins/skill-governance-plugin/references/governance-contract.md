@@ -4,7 +4,7 @@ This contract contains only enforceable invariants for the governance control pl
 
 ## Authority and identity
 
-- The only user-maintained authority roots are `agents-home`, `research-project`, and `math-modeling-2026-provincial`. `.codex` is managed system state, never a Skill authority root.
+- The only user-maintained authority roots are `agents-home`, `research-project`, and `domain-workspace-2026`. `.codex` is managed system state, never a Skill authority root.
 - Every component ID is unique among active records and maps to exactly one canonical path.
 - A component path is resolved only as `roots[root_id].path / relative_path`; component records do not store absolute paths.
 - Consumers are derived by reversing `requires`; a persisted consumer list is invalid.

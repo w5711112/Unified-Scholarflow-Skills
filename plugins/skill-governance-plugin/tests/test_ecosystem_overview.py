@@ -59,7 +59,7 @@ def make_registry(tmp_path: Path) -> tuple[Path, Path]:
             "owner_directories": {
                 "global": "global",
                 "research": "research",
-                "math-modeling": "modeling",
+                "domain-workflow": "modeling",
             },
         },
         "roots": {

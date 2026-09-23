@@ -2,7 +2,7 @@
 
 ## 语料范围
 
-本画像来自整个 `C:\Users\w5711112\Documents\Obsidian Vault`：排除了 `.obsidian` 插件、回收站和 Excalidraw 图文件后，共 94 份 Markdown、约 114 万字。无人机 Kimi 笔记提供了文献综述的篇幅与信息密度参考；ROS、PX4、Sim2Real、强化学习等个人笔记提供了更稳定的组织与解释习惯。
+本画像来自整个 `C:/path/to/vault`：排除了 `.obsidian` 插件、回收站和 Excalidraw 图文件后，共 94 份 Markdown、约 114 万字。无人机 Kimi 笔记提供了文献综述的篇幅与信息密度参考；ROS、PX4、Sim2Real、强化学习等个人笔记提供了更稳定的组织与解释习惯。
 
 ## 稳定特征
 

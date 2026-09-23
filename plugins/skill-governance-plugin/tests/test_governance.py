@@ -685,7 +685,7 @@ def test_governor_skill_is_thin_and_bounded() -> None:
 
 
 def test_marketplace_has_one_entry_per_personal_plugin() -> None:
-    marketplace = Path(r"C:\Users\w5711112\.agents\plugins\marketplace.json")
+    marketplace = Path(r"C:/path/to/home/.agents\plugins\marketplace.json")
     data = json.loads(marketplace.read_text(encoding="utf-8"))
     names = [item["name"] for item in data["plugins"]]
     assert names.count("skill-governance-plugin") == 1
@@ -694,7 +694,7 @@ def test_marketplace_has_one_entry_per_personal_plugin() -> None:
 
 @pytest.mark.skipif(os.name != "nt", reason="Windows Junction contract")
 def test_governance_marketplace_entry_uses_one_canonical_junction() -> None:
-    marketplace = Path(r"C:\Users\w5711112\.agents\plugins\marketplace.json")
+    marketplace = Path(r"C:/path/to/home/.agents\plugins\marketplace.json")
     data = json.loads(marketplace.read_text(encoding="utf-8"))
     entry = next(item for item in data["plugins"] if item["name"] == "skill-governance-plugin")
     assert entry == {
@@ -704,7 +704,7 @@ def test_governance_marketplace_entry_uses_one_canonical_junction() -> None:
         "category": "Productivity",
     }
     installed = marketplace.parent / "plugins" / "skill-governance-plugin"
-    canonical = Path(r"C:\Users\w5711112\.agents\plugins\sources\skill-governance-plugin")
+    canonical = Path(r"C:/path/to/home/.agents\plugins\sources\skill-governance-plugin")
     assert installed.is_junction()
     assert installed.lstat().st_file_attributes & 0x400
     assert os.path.samefile(installed, canonical)
@@ -771,7 +771,7 @@ def test_minimal_plugin_shell() -> None:
     for invariant in (
         "agents-home",
         "research-project",
-        "math-modeling-2026-provincial",
+        "domain-workspace-2026",
         "every component id is unique",
         "exactly one canonical path",
         "roots[root_id].path / relative_path",

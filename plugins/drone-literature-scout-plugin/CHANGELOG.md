@@ -14,4 +14,4 @@
 ## 2.0.0 - 2026-09-02
 
 - Reduced the plugin to six domain Skills; global incident, migration, and Chinese-language providers retain governance support without changing domain workflows.
-- Preserved the 2026-08-31 Zotero pilot and remaining six-Skill Route-B migration lineage here; full migration workspaces, behavior baselines, and temporary project copies under `D:\win-linux-share\整理skill` are not active sources.
+- Preserved the 2026-08-31 Zotero pilot and remaining six-Skill Route-B migration lineage here; full migration workspaces, behavior baselines, and temporary project copies under `D:/path/to/share\整理skill` are not active sources.

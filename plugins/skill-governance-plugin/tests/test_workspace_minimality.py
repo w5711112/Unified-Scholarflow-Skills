@@ -2,10 +2,10 @@ from pathlib import Path
 
 
 ACTIVE_ROOTS = [
-    Path(r"C:\Users\w5711112\.agents\skills"),
-    Path(r"C:\Users\w5711112\.agents\plugins\sources\skill-governance-plugin"),
-    Path(r"C:\Users\w5711112\Documents\Obsidian Vault\<YOUR_RESEARCH_PROJECT>\skill-with-plugin\drone-literature-scout-plugin"),
-    Path(r"D:\win-linux-share\AIM\研究生数学建模\2026年省赛工作空间\paper-skill-location\math-modeling-workflow-plugin"),
+    Path(r"C:/path/to/home/.agents\skills"),
+    Path(r"C:/path/to/home/.agents\plugins\sources\skill-governance-plugin"),
+    Path(r"C:/path/to/vault/project\skill-with-plugin\drone-literature-scout-plugin"),
+    Path(r"D:/path/to/other-work\2026年省赛工作空间\paper-skill-location\other-workflow-plugin"),
 ]
 
 

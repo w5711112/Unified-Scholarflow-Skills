@@ -2,7 +2,7 @@
 
 ## 1. 语料边界
 
-- 物理源目录只读：`C:\Users\w5711112\Documents\PPT-paper-reference-figure\paper-reference-figure`。
+- 物理源目录只读：`C:/path/to/paper-reference-figure`。
 - RSS 起点包含 `屏幕截图 2026-08-01 224935.png`；其前 11 张不属于本语料。
 - 共 103 张，按截图时间严格排序，逻辑编号 `RSS2026_001`–`RSS2026_103`，每批 5 张，最后一批 3 张。
 - 不物理改名、移动、重编码、压缩或覆盖源图；索引只记录文件名、大小和 SHA-256。
