@@ -4,7 +4,7 @@
 
 ## 交付表格排版约定
 
-下列是用户未另行指定时的默认样式，适用于其他竞赛论文、工作文档（实施方案、质量大纲、组织管理方案等）、基金本子等全部文档类型：
+下列是用户未另行指定时的默认样式，适用于数模比赛论文、工作文档（实施方案、质量大纲、组织管理方案等）、基金本子等全部文档类型：
 
 - **三线表默认**：仅保留顶线（粗，约1.5pt）、底线（粗，约1.5pt）和表头行下细线（约0.75pt），无竖线、无内部横线；不加载任何底纹、填充色、字体颜色强调。
 - 全部单元格（表头与正文）水平居中、垂直居中；整张表在页面上水平居中。数字列需要小数对齐时用制表位或段落对齐属性实现，不用空格推齐。
@@ -21,5 +21,5 @@
 本节约定的制定与工程化实现参考了以下现成技能与库，凡参考过其做法的均列出，供后期回溯。下列路径仅记录来源，不构成运行时第二层参考，也不要求再次读取：
 
 - document-skills:docx（ZCode 官方插件，源自 GitHub anthropics/skills 仓库的 docx skill）：其 Formatting Standards（表格 margins、`ShadingType.CLEAR`、`tableHeader/cantSplit`、禁用空格推齐等）与本节的去底纹、属性化对齐做法同源；其 `references/ooxml.md` 的 Document 库用于编辑实现。
-- domain-plugin-v2/skills/paper-writing（本地技能，位于 `D:/path/to/share/AIM/其他竞赛/domain skill revisions-0829/`）：其“白底三线表、零前导空格、表题居中”条款是本节三线表要求的既有来源，本节与其保持双向一致。
+- math-modeling-plugin-v2/skills/paper-writing（本地技能，位于 `D:/win-linux-share/AIM/研究生数学建模/数学建模skill的改进-0829/`）：其“白底三线表、零前导空格、表题居中”条款是本节三线表要求的既有来源，本节与其保持双向一致。
 - python-docx（GitHub python-openxml/python-docx）：单元格对齐、`w:ind`/`w:shd`/`w:tblBorders` 的 XML 级实现依此库完成。

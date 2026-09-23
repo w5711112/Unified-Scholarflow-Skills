@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ENTRY = ROOT / "SKILL.md"
 DEFAULT_DRAFT_ROOT = Path(
-    r"C:/path/to/home/.zcode\workspace\default\humanize-compare\renhua-draft"
+    r"C:\Users\w5711112\.zcode\workspace\default\humanize-compare\renhua-draft"
 )
 DRAFT_ROOT = Path(os.environ.get("RENHUA_DRAFT_ROOT", str(DEFAULT_DRAFT_ROOT)))
 DRAFT_ENTRY = DRAFT_ROOT / "SKILL.md"
