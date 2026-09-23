@@ -78,3 +78,8 @@ python scripts\edge_bridge_ctl.py probe --profile $profile --timeout-ms 15000
 
 验证成功后，在 Agent 会话里应能读到 `probe` 的 `ok: true` 与管道名，这才算“MiMo 能加载 Edge 并联动”。
 
+
+## DeepSeek Harness（dsh）
+
+在 danger-full-access（或等价允许命名管道的沙箱）下执行 dge_bridge_ctl.py probe --pipe codex.searching_at_scale.v1 返回 ok: true，判定为已验证。默认 workspace-write 会因禁止命名管道而出现 EPERM。
+

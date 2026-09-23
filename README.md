@@ -423,6 +423,7 @@ python scripts\edge_bridge_ctl.py probe --profile $profile --timeout-ms 15000
 | Claude Code | `.agents/skills` 等 | 同一命令 |
 | Kimi Code | 技能目录 | 同一命令 |
 | MiMo Desktop | 对话指定路径或技能目录 | 同一命令（**已验证**） |
+| DeepSeek Harness (dsh) | dsh 加载技能目录 | 同一命令（**已验证**，命名管道需沙箱允许） |
 
 ---
 
@@ -463,5 +464,6 @@ git clone https://github.com/w5711112/Unified-Scholarflow-Skills.git
 Jump path: Obsidian paper link → Zotero PDF location; Zotero jump area → Obsidian note location.
 
 Hosts: Codex, Claude Code, Kimi Code, MiMo Desktop. Edge bridge verified via `edge_bridge_ctl.py`.
+
 
 
